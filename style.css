@@ -1,0 +1,47 @@
+body {
+    background: #0a0f24;
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 420px;
+    margin: auto;
+}
+
+.card {
+    background: #121a36;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 0 10px #0004;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    background: #1d6ef0;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:disabled {
+    background: gray;
+}
+
+.task {
+    background: #182245;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.cpa {
+    width: 100%;
+    margin-top: 10px;
+    background: #00c853;
+}
