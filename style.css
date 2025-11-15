@@ -1,0 +1,92 @@
+:root{
+  --bg:#02120b;        /* deep green-black */
+  --card:#071612;
+  --accent:#00ff88;    /* neon green accent */
+  --accent-2:#00cc6a;
+  --muted:#9fecca;
+  --glass: rgba(255,255,255,0.02);
+  --soft:#0b2a1f;
+  --shadow: 0 8px 30px rgba(0,0,0,0.6);
+  --radius:12px;
+  --max:980px;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+}
+
+*{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+html,body{height:100%;margin:0;background:linear-gradient(180deg,#000a05 0%, #02120b 100%);color:var(--muted);-webkit-font-smoothing:antialiased}
+.container{max-width:var(--max);margin:22px auto;padding:0 16px}
+
+/* Header */
+.site-header{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:64px;height:64px;border-radius:12px;border:2px solid rgba(0,255,136,0.06);background:linear-gradient(135deg,#012a17,#003b21);padding:6px}
+.brand h1{margin:0;color:var(--accent);font-size:20px}
+.tag{margin:0;font-size:13px;color:rgba(181,255,211,0.9)}
+.hamburger{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:8px 10px;border-radius:8px}
+
+/* Side menu */
+.side-menu{position:fixed;right:0;top:0;height:100%;width:320px;background:linear-gradient(180deg,#021a12,#00150f);transform:translateX(110%);transition:transform .28s ease;box-shadow:var(--shadow);z-index:80;padding:20px;border-left:1px solid rgba(0,255,136,0.03)}
+.side-menu.open{transform:translateX(0)}
+.side-menu .close{background:transparent;border:none;color:var(--muted);font-size:18px;float:right}
+.side-menu ul{list-style:none;padding:10px 0;margin:30px 0}
+.side-menu li{margin:12px 0}
+.side-menu a{color:var(--muted);text-decoration:none;font-weight:600}
+
+/* Cards */
+.card{background:var(--card);padding:18px;border-radius:var(--radius);margin-bottom:18px;box-shadow:var(--shadow);border:1px solid rgba(0,255,136,0.03)}
+.hero{display:flex;gap:18px;align-items:center;justify-content:space-between}
+.hero-left{display:flex;gap:18px;align-items:center}
+.mining-machine{width:120px;height:120px;display:flex;align-items:center;justify-content:center}
+.hero-actions h2{margin:0;color:var(--accent);font-size:22px}
+.muted{color:rgba(181,255,211,0.75)}
+.social-links{margin-top:8px;display:flex;gap:8px}
+.social{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:8px;color:var(--muted);text-decoration:none}
+
+/* Countdown */
+.countdown-card{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px;background:linear-gradient(180deg, rgba(0,0,0,0.12), rgba(255,255,255,0.01));border-radius:10px}
+.date-display{color:rgba(255,255,255,0.75);font-size:14px}
+.countdown-grid{display:flex;gap:10px;margin-top:4px}
+.cd-cell{min-width:78px;background:linear-gradient(180deg,#00170f,#002718);padding:10px;border-radius:8px;text-align:center;border:1px solid rgba(0,255,136,0.04);box-shadow:0 6px 20px rgba(0,0,0,0.6)}
+.cd-num{font-size:28px;color:var(--accent);font-weight:800;letter-spacing:-0.5px;text-shadow:0 4px 18px rgba(0,255,136,0.04)}
+.cd-label{font-size:12px;color:rgba(200,255,220,0.7)}
+
+/* Mining card */
+.mining-card .mining-stats{display:flex;gap:12px;justify-content:space-between}
+.big{font-size:20px;color:var(--accent);font-weight:700}
+.label{font-size:13px;color:rgba(181,255,211,0.8)}
+.mining-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
+.btn-primary{background:linear-gradient(180deg,var(--accent),var(--accent-2));color:#00160b}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+.btn-cta{background:#00cc6a;color:#00160b;padding:10px 16px;border-radius:10px}
+
+/* task list */
+.task-list{display:grid;gap:12px}
+.task{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(0,0,0,0.04), rgba(255,255,255,0.01));border:1px solid rgba(0,255,136,0.03)}
+.task-left h4{margin:0;color:var(--accent)}
+.task-cta{display:flex;gap:8px;align-items:center}
+.btn-outline{background:transparent;border:1px solid rgba(0,255,136,0.12);color:var(--accent);padding:8px 10px;border-radius:8px}
+
+/* offers grid */
+.offers-grid{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.offer{flex:1;min-width:180px;text-decoration:none;background:linear-gradient(90deg,#003b21,#006b3e);padding:12px;border-radius:10px;color:white;text-align:center;font-weight:700}
+
+/* withdraw */
+.withdraw-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.withdraw-form input{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);min-width:200px}
+.withdraw-form button{padding:10px 14px;border-radius:8px;border:none;cursor:pointer;background:var(--accent)}
+
+/* token info */
+.token-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:8px}
+.mono{font-family:var(--mono);color:#bfffd3}
+
+/* Footer */
+.site-footer{padding:18px;text-align:center;color:rgba(181,255,211,0.55);margin-top:18px}
+
+/* small screens */
+@media(max-width:820px){
+  .hero{flex-direction:column;align-items:flex-start}
+  .countdown-grid{flex-wrap:wrap}
+  .mining-stats{flex-direction:column;gap:8px}
+  .side-menu{width:92%}
+}
