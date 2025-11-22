@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neura NRX — Free Mining & Token Info</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <img src="nrx-logo.png" alt="Neura NRX" class="logo" />
+      <div class="brand-text">
+        <div class="brand-title">Neura NRX</div>
+        <div class="brand-sub">Smart Technology & Blockchain</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button id="menuToggle" class="menu-btn" aria-label="menu">☰</button>
+      <ul class="nav-list" id="navList">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#mining">Mining</a></li>
+        <li><a href="#token">Token Info</a></li>
+        <li><a href="#contact">Support</a></li>
+      </ul>
+      <a class="cta" id="startTopBtn" href="#mining">Start Mining</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section id="home" class="hero">
+      <div class="hero-left">
+        <h1>Powering Smart Digital Growth</h1>
+        <p class="lead">Neura NRX uses smart technology and blockchain to create easy, reliable, and secure digital tools that help people and businesses grow in the new digital world.</p>
+
+        <div class="countdown-wrap" aria-hidden="false">
+          <div id="dateDisplay" class="dateDisplay">Monday 15 December 2025</div>
+          <div id="countdown" class="countdown">
+            <div class="cd-item"><span id="cd-days">0</span><small>Days</small></div>
+            <div class="cd-item"><span id="cd-hours">0</span><small>Hours</small></div>
+            <div class="cd-item"><span id="cd-mins">0</span><small>Minutes</small></div>
+            <div class="cd-item"><span id="cd-secs">0</span><small>Seconds</small></div>
+          </div>
+          <div id="currentTime" class="currentTime"></div>
+        </div>
+
+        <div class="social-links">
+          <a href="https://t.me/nrxtoken" target="_blank" rel="noreferrer">Telegram</a>
+          <a href="https://twitter.com/nrxtoken" target="_blank" rel="noreferrer">Twitter</a>
+          <a href="#token">Token Info</a>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <!-- Miner illustration (animated fans) -->
+        <div class="miner-card" aria-hidden="true">
+          <div class="miner-body">
+            <div class="fan fan-1"><div class="fan-blade"></div></div>
+            <div class="fan fan-2"><div class="fan-blade"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MINING DASHBOARD -->
+    <section id="mining" class="card mining-card">
+      <h2>Mining Dashboard</h2>
+      <p class="muted">Mining opens on <strong>22 Nov 2025</strong>. Withdrawals require at least one completed task (OGAds) and a minimum of <strong>40 NRX</strong>.</p>
+
+      <div class="stats">
+        <div>
+          <p class="label">Total NRX (wallet)</p>
+          <p class="big" id="balance">0.0000</p>
+        </div>
+        <div>
+          <p class="label">Mined Today</p>
+          <p class="big" id="minedToday">0.0000</p>
+        </div>
+        <div>
+          <p class="label">Daily Limit</p>
+          <p class="big">10 NRX</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="startMine" class="btn primary">Mine Now</button>
+        <button id="boostBtn" class="btn secondary" disabled>Boost Mine</button>
+        <button id="stopMine" class="btn ghost" disabled>Stop</button>
+      </div>
+
+      <p class="muted">Session time left: <span id="sessionTimer">00:00</span></p>
+    </section>
+
+    <!-- TASKS / OGADS -->
+    <section class="card tasks-card">
+      <h2>Tasks — Complete to Unlock Withdraw</h2>
+      <p class="muted">Complete at least one task (OGAds offer) to enable withdrawals. Each task may give small NRX and a temporary boost.</p>
+
+      <div class="task-list">
+        <div class="task">
+          <div class="task-info">
+            <h3>Complete an Offer (Recommended)</h3>
+            <p>Open an offerwall item and complete required action to unlock withdraws.</p>
+          </div>
+          <div class="task-actions">
+            <a id="openOffer" class="btn link" target="_blank" rel="noreferrer" href="https://lockedapp.org/cl/i/j76pvj">Open Offer</a>
+            <button id="verifyTask" class="btn verify">I've Completed</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="muted small">Note: Offer verification here is manual (click "I've Completed"). For production, use server-side postback verification with OGAds callbacks.</p>
+    </section>
+
+    <!-- TOKEN INFO (for BscScan verification) -->
+    <section id="token" class="card token-card">
+      <h2>Token Information</h2>
+      <dl class="token-grid">
+        <div><dt>Token Name</dt><dd>Neura Token</dd></div>
+        <div><dt>Symbol</dt><dd>NRX</dd></div>
+        <div><dt>Contract Address</dt><dd class="mono">0x843359Fc72AB9C741c88EA32a224005f9AED5eD7</dd></div>
+        <div><dt>Network</dt><dd>BNB Smart Chain (BSC)</dd></div>
+        <div><dt>Official Website</dt><dd><a href="https://nrxproject.com" target="_blank" rel="noreferrer">nrxproject.com</a></dd></div>
+        <div><dt>Official Email</dt><dd><a href="mailto:info@nrxproject.com">info@nrxproject.com</a></dd></div>
+      </dl>
+
+      <h3>Short Description</h3>
+      <p class="muted">Neura NRX uses smart technology and blockchain to create easy, reliable, and secure digital tools that help people and businesses grow in the new digital world.</p>
+
+      <h3>Token Distribution (summary)</h3>
+      <ul class="muted">
+        <li>Sale / Liquidity: 70%</li>
+        <li>Team / Advisors (vesting): 15%</li>
+        <li>Community & Airdrop: 10%</li>
+        <li>Reserve: 5%</li>
+      </ul>
+    </section>
+
+    <!-- Withdraw UI -->
+    <section class="card withdraw-card">
+      <h2>Withdraw NRX</h2>
+      <p class="muted">Minimum withdraw: <strong>40 NRX</strong>. Withdrawals require at least one completed task for verification.</p>
+
+      <div class="withdraw-row">
+        <input id="withdrawAddress" type="text" placeholder="Enter BSC wallet address (0x...)" class="input" />
+        <input id="withdrawAmount" type="number" placeholder="Amount NRX" class="input sm" min="0" />
+        <button id="withdrawBtn" class="btn primary">Withdraw Now</button>
+      </div>
+      <p id="withdrawNote" class="muted small"></p>
+    </section>
+
+    <!-- Support / Contact -->
+    <section id="contact" class="card contact-card">
+      <h2>Contact & Support</h2>
+      <p>Email: <a href="mailto:info@nrxproject.com">info@nrxproject.com</a></p>
+      <p>Telegram: <a href="https://t.me/nrxtoken" target="_blank" rel="noreferrer">https://t.me/nrxtoken</a></p>
+      <p>Twitter: <a href="https://twitter.com/nrxtoken" target="_blank" rel="noreferrer">https://twitter.com/nrxtoken</a></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2025 Neura NRX — All rights reserved.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
