@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Neura Token (NRX) - Free Crypto Mining</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <!-- 🔽 AD-MAVEN VERIFICATION META TAG - ADDED 🔽 -->
+    <meta name='admaven-placement' content='BqjwGqHw8'>
+    
+    <!-- Lightweight config so backend URL can be changed quickly without editing script.js -->
+    <script>
+        // If you ever need to change the backend address quickly, update it here.
+        // script.js uses its own BACKEND_URL constant — keep these synchronized if you change.
+        window.NRX_CONFIG = {
+            BACKEND_URL: "https://nrx-backend-2.onrender.com",  // CHANGED TO YOUR ACTUAL BACKEND
+            SESSION_KEY: "nrx_session_id",
+            LOCAL_PROGRESS_KEY: "nrxMiningData"
+        };
+    </script>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <img src="https://i.ibb.co/hx41NSd4/logo.png" alt="Neura Token" class="logo-image">
+                    <h1>Neura <span>Token</span></h1>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#mining">Mining</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <p>Free mining with instant withdrawals. Just click and earn!</p>
+            
+            <div class="countdown">
+                <h3>Official Listing In:</h3>
+                <div class="timer">
+                    <div class="timer-box">
+                        <span id="days">22</span>
+                        <small>Days</small>
+                    </div>
+                    <div class="timer-box">
+                        <span id="hours">00</span>
+                        <small>Hours</small>
+                    </div>
+                    <div class="timer-box">
+                        <span id="minutes">00</span>
+                        <small>Minutes</small>
+                    </div>
+                    <div class="timer-box">
+                        <span id="seconds">00</span>
+                        <small>Seconds</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mining Section -->
+    <section class="mining-section" id="mining">
+        <div class="container">
+            <div class="mining-card">
+                <div class="mining-header">
+                    <h2>Start Mining Neura Token (NRX)</h2>
+                    <p>Daily Limit: 20 NRX</p>
+                </div>
+                
+                <div class="mining-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="mining-speed">20 H/s</div>
+                        <div class="stat-label">Mining Speed</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="mined-tokens">0.00 NRX</div>
+                        <div class="stat-label">Mined Today</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="daily-limit">20 NRX</div>
+                        <div class="stat-label">Daily Limit</div>
+                    </div>
+                </div>
+                
+                <!-- ============ AD-MAVEN TIMER SYSTEM ============ -->
+                <div id="mining-timer-section" style="background: linear-gradient(135deg, rgba(26, 26, 46, 0.9), rgba(22, 33, 62, 0.9)); border-radius: 12px; padding: 20px; margin: 20px 0; border: 2px solid #f39c12; box-shadow: 0 0 25px rgba(243, 156, 18, 0.25); backdrop-filter: blur(10px);">
+                    
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 15px;">
+                        <div style="width: 12px; height: 12px; background: #2ecc71; border-radius: 50%; animation: pulse 2s infinite;"></div>
+                        <div style="color: #aaa; font-size: 0.9rem; font-weight: 500;">ACTIVE MINING SESSION</div>
+                        <div style="width: 12px; height: 12px; background: #2ecc71; border-radius: 50%; animation: pulse 2s infinite;"></div>
+                    </div>
+                    
+                    <div id="mining-timer" style="font-size: 3.8rem; font-weight: bold; color: #2ecc71; font-family: 'Courier New', monospace; text-align: center; text-shadow: 0 0 20px rgba(46, 204, 113, 0.4); margin: 10px 0; transition: all 0.3s;">05:00</div>
+                    
+                    <div style="height: 14px; background: rgba(255,255,255,0.08); border-radius: 7px; margin: 25px 0; overflow: hidden; position: relative;">
+                        <div id="mining-progress" style="height: 100%; background: linear-gradient(90deg, #2ecc71, #f39c12); width: 100%; transition: width 1s linear;"></div>
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); background-size: 200% 100%; animation: shimmer 2s infinite;"></div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; color: #aaa; font-size: 0.8rem; margin-top: 15px;">
+                        <div>⏰ Next ad in: <span id="time-until-ad">5:00</span></div>
+                        <div>⚡ Speed: <span id="current-speed">20</span> H/s</div>
+                    </div>
+                    
+                </div>
+                <!-- ============ END TIMER SYSTEM ============ -->
+                
+                <div class="mining-controls">
+                    <button class="btn btn-primary" id="start-mining-btn">
+                        <i class="fas fa-play"></i> Start Mining Now
+                    </button>
+                    <button class="btn btn-warning" id="mine-now-btn">
+                        <i class="fas fa-hammer"></i> Mine Now
+                    </button>
+                    <button class="btn btn-success" id="withdraw-btn">
+                        <i class="fas fa-wallet"></i> Withdraw
+                    </button>
+                </div>
+                
+                <div class="boost-mining" id="boost-mining-section" style="display: none;">
+                    <h3>Boost Your Mining Speed</h3>
+                    <p>Complete tasks to increase your mining speed</p>
+                    
+                    <div class="tasks">
+                        <div class="task" data-task="1">
+                            <i class="fab fa-youtube"></i>
+                            <h4>Watch Video</h4>
+                            <p>+5 H/s for 1 hour</p>
+                        </div>
+                        <div class="task" data-task="2">
+                            <i class="fas fa-share-alt"></i>
+                            <h4>Share on Social</h4>
+                            <p>+10 H/s for 2 hours</p>
+                        </div>
+                        <div class="task" data-task="3">
+                            <i class="fas fa-download"></i>
+                            <h4>Install App</h4>
+                            <p>+15 H/s for 3 hours</p>
+                        </div>
+                        <div class="task" data-task="4">
+                            <i class="fas fa-user-plus"></i>
+                            <h4>Invite Friend</h4>
+                            <p>+20 H/s for 4 hours</p>
+                        </div>
+                        <div class="task" data-task="5">
+                            <i class="fas fa-search"></i>
+                            <h4>Search Web</h4>
+                            <p>+8 H/s for 1 hour</p>
+                        </div>
+                        <div class="task" data-task="6">
+                            <i class="fas fa-tasks"></i>
+                            <h4>Complete Survey</h4>
+                            <p>+12 H/s for 2 hours</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>About Neura Token (NRX)</h2>
+                    <p><strong>Token Distribution: Powering Smart Digital Growth</strong></p>
+                    <p>Neura NRX uses smart technology and blockchain to create easy, reliable, and secure digital tools that help people and businesses grow in the new digital world.</p>
+                    <p>Our mission is to democratize access to blockchain technology and create innovative solutions that drive digital transformation across industries.</p>
+                    
+                    <div class="network-info">
+                        <h3><i class="fab fa-btc"></i> Network: BNB Smart Chain</h3>
+                    </div>
+                </div>
+                
+                <div class="token-info">
+                    <h3>Token Information</h3>
+                    <div class="info-item">
+                        <span class="info-label">Token Name:</span>
+                        <span>Neura Token</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Symbol:</span>
+                        <span>NRX</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Network:</span>
+                        <span>BNB Smart Chain</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Contract Address:</span>
+                    </div>
+                    <div class="contract-address">
+                        <i class="fas fa-copy" id="copy-address"></i>
+                        <span>0x843359Fc72AB9C741c88EA32a224005f9AED5eD7</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Neura Token</h3>
+                    <p>Powering Smart Digital Growth with blockchain technology.</p>
+                    <div class="social-links">
+                        <a href="https://t.me/nrxtoken" target="_blank"><i class="fab fa-telegram"></i></a>
+                        <a href="https://twitter.com/nrxtoken" target="_blank"><i class="fab fa-twitter"></i></a>
+                        <a href="mailto:info@nrxproject.com"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#mining">Start Mining</a></li>
+                        <li><a href="#about">About NRX</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <p><i class="fas fa-envelope"></i> info@nrxproject.com</p>
+                    <p><i class="fab fa-telegram"></i> t.me/nrxtoken</p>
+                    <p><i class="fab fa-twitter"></i> twitter.com/nrxtoken</p>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2025 Neura Token. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- OGADS Verification Modal -->
+    <div class="modal" id="ogads-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Complete Task to Continue</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body" id="ogads-modal-body">
+                <!-- Initial verification content -->
+                <div id="verification-content">
+                    <p>Please complete the task to activate your mining boost / withdrawal.</p>
+                    <div class="verification-steps">
+                        <div class="step">
+                            <i class="fas fa-external-link-alt"></i>
+                            <strong>Step 1:</strong> Click to open the verification task
+                        </div>
+                        <div class="step">
+                            <i class="fas fa-clock"></i>
+                            <strong>Step 2:</strong> Complete the task in the new tab
+                        </div>
+                        <div class="step">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Step 3:</strong> Click verify after completing
+                        </div>
+                    </div>
+                    
+                    <div class="task-buttons">
+                        <button class="btn btn-primary" id="open-task-btn">
+                            <i class="fas fa-external-link-alt"></i> Open Verification Task
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Verification process (hidden initially) -->
+                <div id="verification-process" style="display: none;">
+                    <div class="verification-status pending">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Waiting for task completion...</span>
+                    </div>
+                    
+                    <div class="verification-steps">
+                        <div class="step">
+                            <i class="fas fa-external-link-alt"></i>
+                            <strong>Task opened:</strong> Complete it in the new tab
+                        </div>
+                        <div class="step">
+                            <i class="fas fa-clock"></i>
+                            <strong>Time remaining:</strong> <span id="countdown">30</span> seconds
+                        </div>
+                        <div class="step">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Status:</strong> <span id="verification-status-text">Waiting...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="verification-progress">
+                        <div class="verification-progress-bar" id="progress-bar"></div>
+                    </div>
+                    
+                    <div class="verification-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        You must actually complete the task in the new tab. Bypass attempts will fail.
+                    </div>
+                    
+                    <div class="task-buttons">
+                        <button class="btn btn-primary" id="verify-task-btn" disabled>
+                            <i class="fas fa-clock"></i> Complete Task First (<span id="verify-countdown">30</span>s)
+                        </button>
+                        <button class="btn btn-secondary" id="reopen-task-btn">
+                            <i class="fas fa-redo"></i> Reopen Task
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Verification success (hidden initially) -->
+                <div id="verification-success" style="display: none;">
+                    <div class="verification-success">
+                        <i class="fas fa-check-circle"></i>
+                        <h4>Task Verified Successfully!</h4>
+                        <p>Your mining boost has been activated / withdrawal has been processed.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdrawal Modal -->
+    <div class="modal" id="withdrawal-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Withdraw NRX Tokens</h3>
+                <span class="close withdrawal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="withdrawal-form">
+                    <div class="form-group">
+                        <label for="wallet-address">Your BNB Smart Chain Wallet Address:</label>
+                        <input type="text" id="wallet-address" placeholder="0x..." class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="network">Network:</label>
+                        <select id="network" class="form-input">
+                            <option value="bsc" selected>BNB Smart Chain (BSC)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="withdrawal-amount">Amount to Withdraw (NRX):</label>
+                        <input type="number" id="withdrawal-amount" step="0.001" min="0.001" class="form-input" readonly>
+                        <small>Available: <span id="available-tokens">0.00</span> NRX</small>
+                    </div>
+                    
+                    <div class="withdrawal-info">
+                        <h4><i class="fas fa-info-circle"></i> Important Information:</h4>
+                        <ul>
+                            <li>Minimum withdrawal: 0.001 NRX</li>
+                            <li>Network: BNB Smart Chain (BEP-20)</li>
+                            <li>Withdrawals are processed instantly after task completion</li>
+                            <li>Ensure your wallet supports NRX tokens</li>
+                        </ul>
+                    </div>
+                    
+                    <button class="btn btn-success" id="confirm-withdrawal">
+                        <i class="fas fa-paper-plane"></i> Confirm Withdrawal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ AD-MAVEN AD OVERLAY ============ -->
+    <div id="ad-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 99999;">
+        
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 96%; max-width: 600px;">
+            
+            <!-- Ad Container -->
+            <div style="background: #1a1a2e; border-radius: 20px; overflow: hidden; border: 4px solid #f39c12; box-shadow: 0 0 60px rgba(243, 156, 18, 0.5);">
+                
+                <!-- Header -->
+                <div style="background: linear-gradient(135deg, #f39c12, #e67e22); padding: 20px; text-align: center;">
+                    <div style="font-size: 2.8rem;">📺</div>
+                    <h3 style="color: white; margin: 10px 0 5px 0;">ADVERTISEMENT REQUIRED</h3>
+                    <p style="color: rgba(255,255,255,0.9); font-size: 0.9rem;">Watch this ad to continue mining</p>
+                </div>
+                
+                <!-- Ad Content -->
+                <div style="padding: 30px;">
+                    
+                    <!-- Ad Space -->
+                    <div id="ad-container" style="min-height: 320px; background: rgba(15, 52, 96, 0.7); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 30px; border: 2px dashed rgba(255,255,255,0.15);">
+                        <div style="text-align: center; padding: 40px;">
+                            <div class="ad-spinner" style="width: 70px; height: 70px; border: 6px solid rgba(243, 156, 18, 0.2); border-top: 6px solid #f39c12; border-radius: 50%; animation: spin 1.5s linear infinite; margin: 0 auto 25px;"></div>
+                            <p style="color: #aaa; margin-bottom: 10px; font-size: 1.1rem;">Loading advertisement...</p>
+                            <p style="color: #666; font-size: 0.85rem;">Ad will appear here once configured</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Countdown -->
+                    <div style="text-align: center; margin: 30px 0;">
+                        <div style="font-size: 0.9rem; color: #aaa; margin-bottom: 15px;">⏳ TIME REMAINING</div>
+                        <div id="ad-countdown" style="font-size: 4.5rem; font-weight: bold; color: #2ecc71; font-family: monospace; text-shadow: 0 0 20px rgba(46, 204, 113, 0.5); margin-bottom: 10px;">30</div>
+                        <p style="color: #aaa;">seconds until mining resumes</p>
+                    </div>
+                    
+                    <!-- Warning -->
+                    <div style="background: rgba(231, 76, 60, 0.1); border: 2px solid rgba(231, 76, 60, 0.3); border-radius: 10px; padding: 20px; text-align: center; margin-top: 25px;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px;">
+                            <div style="font-size: 1.5rem; color: #e74c3c;">⚠️</div>
+                            <div style="font-size: 1.1rem; color: #e74c3c; font-weight: bold;">DO NOT CLOSE THIS WINDOW</div>
+                        </div>
+                        <p style="color: #aaa; font-size: 0.9rem; margin: 0;">Closing this window will interrupt mining</p>
+                    </div>
+                    
+                </div>
+                
+            </div>
+            
+        </div>
+        
+    </div>
+    <!-- ============ END AD OVERLAY ============ -->
+
+    <!-- Keep script.js as the single source of frontend logic -->
+    <script src="script.js"></script>
+    
+    <!-- Quick script to handle modal content switching -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const openTaskBtn = document.getElementById('open-task-btn');
+        const modalBody = document.getElementById('ogads-modal-body');
+        const verificationContent = document.getElementById('verification-content');
+        const verificationProcess = document.getElementById('verification-process');
+        const verificationSuccess = document.getElementById('verification-success');
+        const modalTitle = document.getElementById('modal-title');
+        
+        if (openTaskBtn) {
+            openTaskBtn.addEventListener('click', function() {
+                // Open OGADS link in new tab
+                window.open('https://applocked.org/cl/i/j76pvj', '_blank');
+                
+                // Switch to verification process view
+                verificationContent.style.display = 'none';
+                verificationProcess.style.display = 'block';
+                verificationSuccess.style.display = 'none';
+                
+                // Update modal title
+                if (modalTitle) {
+                    modalTitle.textContent = 'Complete Verification Task';
+                }
+                
+                // Start countdown
+                startVerificationCountdown();
+            });
+        }
+        
+        // Handle reopen task button
+        const reopenTaskBtn = document.getElementById('reopen-task-btn');
+        if (reopenTaskBtn) {
+            reopenTaskBtn.addEventListener('click', function() {
+                window.open('https://applocked.org/cl/i/j76pvj', '_blank');
+            });
+        }
+        
+        // Handle verify task button
+        const verifyTaskBtn = document.getElementById('verify-task-btn');
+        if (verifyTaskBtn) {
+            verifyTaskBtn.addEventListener('click', function() {
+                // This will be handled by the main script.js
+                // Show success message
+                verificationProcess.style.display = 'none';
+                verificationSuccess.style.display = 'block';
+                
+                // Auto-close after 3 seconds
+                setTimeout(() => {
+                    const ogadsModal = document.getElementById('ogads-modal');
+                    if (ogadsModal) {
+                        ogadsModal.style.display = 'none';
+                        
+                        // Reset modal content
+                        verificationContent.style.display = 'block';
+                        verificationProcess.style.display = 'none';
+                        verificationSuccess.style.display = 'none';
+                        
+                        if (modalTitle) {
+                            modalTitle.textContent = 'Complete Task to Continue';
+                        }
+                    }
+                }, 3000);
+            });
+        }
+        
+        function startVerificationCountdown() {
+            let secondsLeft = 30;
+            const countdownElement = document.getElementById('countdown');
+            const verifyCountdownElement = document.getElementById('verify-countdown');
+            const verifyTaskBtn = document.getElementById('verify-task-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const statusText = document.getElementById('verification-status-text');
+            
+            if (!countdownElement || !verifyCountdownElement || !verifyTaskBtn) return;
+            
+            // Reset button state
+            verifyTaskBtn.disabled = true;
+            verifyTaskBtn.innerHTML = '<i class="fas fa-clock"></i> Complete Task First (<span id="verify-countdown">30</span>s)';
+            
+            const countdownInterval = setInterval(() => {
+                secondsLeft--;
+                
+                countdownElement.textContent = secondsLeft;
+                verifyCountdownElement.textContent = secondsLeft;
+                
+                // Update progress bar
+                const progress = ((30 - secondsLeft) / 30) * 100;
+                if (progressBar) {
+                    progressBar.style.width = progress + '%';
+                }
+                
+                if (secondsLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    
+                    // Enable verify button
+                    verifyTaskBtn.disabled = false;
+                    verifyTaskBtn.innerHTML = '<i class="fas fa-check"></i> Verify Task Completion';
+                    
+                    // Update status
+                    if (statusText) {
+                        statusText.textContent = 'Ready to verify';
+                        statusText.style.color = 'var(--success)';
+                    }
+                } else if (secondsLeft <= 10) {
+                    // Add warning class for last 10 seconds
+                    if (!countdownElement.classList.contains('countdown-flash')) {
+                        countdownElement.classList.add('countdown-flash');
+                        verifyCountdownElement.classList.add('countdown-flash');
+                    }
+                    
+                    // Update status text
+                    if (statusText) {
+                        statusText.textContent = 'Almost done...';
+                        statusText.style.color = 'var(--accent)';
+                    }
+                } else if (secondsLeft <= 20) {
+                    // Update status text
+                    if (statusText) {
+                        statusText.textContent = 'Task in progress...';
+                        statusText.style.color = 'var(--primary)';
+                    }
+                }
+            }, 1000);
+        }
+        
+        // Reset modal when closed
+        document.querySelectorAll('.close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Reset modal content
+                verificationContent.style.display = 'block';
+                verificationProcess.style.display = 'none';
+                verificationSuccess.style.display = 'none';
+                
+                if (modalTitle) {
+                    modalTitle.textContent = 'Complete Task to Continue';
+                }
+            });
+        });
+    });
+    </script>
+    
+    <!-- Timer System CSS Animations -->
+    <style>
+        /* Timer system animations - will work with your existing CSS */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</body>
+                  </html>
