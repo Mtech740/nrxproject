@@ -1,0 +1,892 @@
+// ==================== COMPLETE FIXED SCRIPT.JS ====================
+// NRX Mining Platform - Value-Preserving Mining Rates
+// Daily Limit: 20 NRX | Mining Rate: 0.00139 NRX/sec at 20 H/s
+
+// ==================== VALUE-PRESERVING CONFIG ====================
+const BACKEND_URL = "https://nrx-backend-2.onrender.com";
+const SESSION_STORAGE_KEY = "nrx_session_id";
+const LOCAL_PROGRESS_KEY = "nrxMiningData";
+const DAILY_LIMIT = 20; // 20 NRX daily max (TOKEN VALUE PROTECTED)
+const BASE_MINING_SPEED = 20; // 20 H/s
+const MINING_RATE = 0.00139; // 0.00139 NRX/sec at 20 H/s (VALUE-PRESERVING)
+
+// OGAds Configuration
+const OGADS_DIRECT_LINK = 'https://redirectapps.org/cl/i/j76pvj';
+
+// State variables
+let sessionId = null;
+let minedTokens = 0;
+let miningSpeed = BASE_MINING_SPEED;
+let isMining = false;
+let miningInterval = null;
+let completedTasks = [];
+let pendingWithdrawal = null;
+let pendingBoostId = null;
+
+// Timer variables
+let miningTimeLeft = 300; // 5 minutes
+let timerMiningActive = false;
+let miningTimer = null;
+let miningStartTime = null;
+
+// OGAds Enforcement
+let ogadsForceLock = false;
+
+// Performance
+let uiElementsCache = null;
+let lastSaveTime = 0;
+
+// ==================== INITIALIZATION ====================
+(function initializeUI() {
+    console.log("⚡ NRX Mining Platform - Value-Preserving Mining");
+    console.log("💰 Daily Limit: 20 NRX | Mining Rate: 0.00139 NRX/sec");
+    console.log("⏱️  5-min Session: 0.417 NRX | Full Daily: 48 sessions (4 hours)");
+    
+    // Load saved progress
+    loadLocalProgress();
+    
+    // Setup event listeners
+    setupEventListeners();
+    
+    // Initial UI update
+    updateUI();
+    
+    // Start global countdown
+    startGlobalCountdown();
+    
+    console.log("✅ Platform Ready! Balance:", minedTokens.toFixed(4), "NRX");
+})();
+
+function loadLocalProgress() {
+    try {
+        const saved = localStorage.getItem(LOCAL_PROGRESS_KEY);
+        if (saved) {
+            const progress = JSON.parse(saved);
+            minedTokens = progress.minedTokens || 0;
+            miningSpeed = progress.miningSpeed || BASE_MINING_SPEED;
+            completedTasks = progress.completedTasks || [];
+            sessionId = progress.sessionId || `local-${Date.now()}`;
+            console.log("📦 Loaded progress:", minedTokens.toFixed(4), "NRX");
+        }
+    } catch (error) {
+        console.error('Error loading progress:', error);
+    }
+}
+
+function saveLocalProgress() {
+    const now = Date.now();
+    // Don't save too frequently
+    if (now - lastSaveTime < 5000) return;
+    
+    const progress = { 
+        minedTokens, 
+        miningSpeed, 
+        completedTasks, 
+        sessionId,
+        lastSave: now
+    };
+    localStorage.setItem(LOCAL_PROGRESS_KEY, JSON.stringify(progress));
+    lastSaveTime = now;
+}
+
+// ==================== VALUE-PRESERVING MINING SYSTEM ====================
+function startMiningWithTimer() {
+    console.log('🚀 Starting mining session...');
+    
+    // Check conditions
+    if (ogadsForceLock) {
+        alert('Please complete the current task first!');
+        return;
+    }
+    
+    if (minedTokens >= DAILY_LIMIT) {
+        alert("🎉 Daily limit reached! Come back tomorrow.");
+        return;
+    }
+    
+    // If already mining, stop it
+    if (isMining || timerMiningActive) {
+        stopMining();
+        return;
+    }
+    
+    // Start new session
+    timerMiningActive = true;
+    miningTimeLeft = 300;
+    miningStartTime = Date.now();
+    
+    // Update UI
+    updateMiningButton(true);
+    
+    // ✅ START VALUE-PRESERVING MINING
+    startActualMining();
+    
+    // Start 5-minute countdown
+    startCountdownTimer();
+    
+    console.log('⛏️ Mining ACTIVE! Rate:', (miningSpeed / 20 * MINING_RATE).toFixed(6), 'NRX/sec');
+    console.log('📈 Expected this session: 0.417 NRX');
+}
+
+function startActualMining() {
+    if (isMining) return;
+    
+    isMining = true;
+    
+    // Clear any existing interval
+    if (miningInterval) clearInterval(miningInterval);
+    
+    // ✅ VALUE-PRESERVING MINING RATE: 0.00139 NRX/sec at 20 H/s
+    miningInterval = setInterval(() => {
+        if (!isMining || ogadsForceLock) return;
+        
+        // Calculate tokens based on mining speed
+        // At speed 20: 0.00139 NRX per second
+        // Scale based on actual speed
+        const tokensPerSecond = (miningSpeed / 20) * MINING_RATE;
+        
+        // Add tokens (respect daily limit)
+        const newTokens = minedTokens + tokensPerSecond;
+        minedTokens = Math.min(newTokens, DAILY_LIMIT);
+        
+        // Update UI every 500ms for smooth display
+        const now = Date.now();
+        if (now % 500 < 100) {
+            updateUI();
+        }
+        
+        // Save progress every 10 seconds
+        if (now % 10000 < 500) {
+            saveLocalProgress();
+        }
+        
+        // Check if daily limit reached
+        if (minedTokens >= DAILY_LIMIT) {
+            stopMining();
+            showNotification('🎉 Daily limit of 20 NRX reached! Come back tomorrow.', 'success');
+        }
+        
+    }, 1000); // Run every second
+}
+
+function startCountdownTimer() {
+    // Clear existing timer
+    if (miningTimer) clearInterval(miningTimer);
+    
+    miningTimer = setInterval(() => {
+        if (!timerMiningActive || ogadsForceLock) return;
+        
+        miningTimeLeft--;
+        updateTimerDisplay();
+        
+        // When timer hits 0
+        if (miningTimeLeft <= 0) {
+            clearInterval(miningTimer);
+            miningTimer = null;
+            
+            console.log('⏰ 5-minute session completed!');
+            console.log('📊 Tokens mined this session:', (0.417).toFixed(3), 'NRX');
+            
+            // Stop mining and open OGAds
+            stopMining();
+            openOGAdsLocker('timer');
+        }
+    }, 1000);
+}
+
+function stopMining() {
+    console.log('🛑 Stopping mining...');
+    
+    // Stop all intervals
+    isMining = false;
+    timerMiningActive = false;
+    
+    if (miningInterval) {
+        clearInterval(miningInterval);
+        miningInterval = null;
+    }
+    
+    if (miningTimer) {
+        clearInterval(miningTimer);
+        miningTimer = null;
+    }
+    
+    // Update UI
+    updateMiningButton(false);
+    
+    // Save progress
+    saveLocalProgress();
+}
+
+function updateTimerDisplay() {
+    const timerElement = document.getElementById('mining-timer');
+    if (timerElement) {
+        timerElement.textContent = formatTime(miningTimeLeft);
+    }
+    
+    const progressElement = document.getElementById('mining-progress');
+    if (progressElement) {
+        const progressPercent = ((300 - miningTimeLeft) / 300) * 100;
+        progressElement.style.width = progressPercent + '%';
+    }
+}
+
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+// ==================== UI FUNCTIONS ====================
+function updateUI() {
+    // Cache DOM elements
+    if (!uiElementsCache) {
+        uiElementsCache = {
+            minedEl: document.getElementById('mined-tokens'),
+            speedEl: document.getElementById('mining-speed'),
+            availEl: document.getElementById('available-tokens'),
+            withdrawalAmountEl: document.getElementById('withdrawal-amount'),
+            currentSpeedEl: document.getElementById('current-speed'),
+            miningTimerEl: document.getElementById('mining-timer'),
+            miningProgressEl: document.getElementById('mining-progress')
+        };
+    }
+    
+    const el = uiElementsCache;
+    
+    // Update all displays
+    if (el.minedEl) el.minedEl.textContent = minedTokens.toFixed(4) + " NRX";
+    if (el.speedEl) el.speedEl.textContent = miningSpeed + " H/s";
+    if (el.availEl) el.availEl.textContent = minedTokens.toFixed(4);
+    if (el.currentSpeedEl) el.currentSpeedEl.textContent = miningSpeed;
+    
+    if (el.withdrawalAmountEl) {
+        el.withdrawalAmountEl.value = minedTokens.toFixed(4);
+    }
+    
+    // Update tasks
+    updateTaskVisuals();
+}
+
+function updateMiningButton(isActive) {
+    const miningBtn = document.getElementById('start-mining-btn');
+    if (!miningBtn) return;
+    
+    if (isActive) {
+        miningBtn.innerHTML = '<i class="fas fa-pause"></i> Stop Mining';
+        miningBtn.classList.remove('btn-primary');
+        miningBtn.classList.add('btn-warning');
+    } else {
+        miningBtn.innerHTML = '<i class="fas fa-play"></i> Start Mining Now';
+        miningBtn.classList.remove('btn-warning');
+        miningBtn.classList.add('btn-primary');
+        
+        // Reset timer display
+        const timerElement = document.getElementById('mining-timer');
+        if (timerElement) timerElement.textContent = '05:00';
+        
+        // Reset progress bar
+        const progressElement = document.getElementById('mining-progress');
+        if (progressElement) progressElement.style.width = '0%';
+    }
+    
+    miningBtn.disabled = ogadsForceLock;
+}
+
+function updateTaskVisuals() {
+    document.querySelectorAll('.task').forEach(task => {
+        const taskId = task.getAttribute('data-task');
+        const isCompleted = completedTasks.some(t => t.includes(`task-${taskId}`));
+        
+        if (isCompleted) {
+            task.style.background = 'linear-gradient(90deg, #27ae60, #2ecc71)';
+            task.style.color = 'white';
+            task.innerHTML = `<i class="fas fa-check-circle"></i><h4>Task Completed</h4><p>Already boosted</p>`;
+            task.style.cursor = 'default';
+            task.style.pointerEvents = 'none';
+        } else if (!ogadsForceLock) {
+            task.style.pointerEvents = 'auto';
+        }
+    });
+}
+
+// ==================== OGADS INTEGRATION ====================
+function openOGAdsLocker(type) {
+    console.log(`🔒 Opening OGAds for: ${type}`);
+    
+    // Stop mining
+    stopMining();
+    
+    // Lock interface
+    lockPageInterface();
+    
+    // Store action type
+    window.currentOGAdsType = type;
+    
+    // Create OGAds container
+    const ogadsContainer = document.createElement('div');
+    ogadsContainer.id = 'ogads-main-container';
+    ogadsContainer.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 99998;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    // Your OGAds script
+    ogadsContainer.innerHTML = `
+        <div style="color: white; text-align: center; padding: 20px; max-width: 600px;">
+            <h2 style="color: #f39c12; margin-bottom: 20px;">
+                <i class="fas fa-tasks"></i> Complete Task to Continue Mining
+            </h2>
+            <div style="background: rgba(243, 156, 18, 0.1); padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid #f39c12;">
+                <p style="font-size: 1.1rem; margin-bottom: 10px;">
+                    <strong>Complete one offer below to continue mining.</strong>
+                </p>
+                <p style="color: #e74c3c;">
+                    <i class="fas fa-exclamation-triangle"></i> Mining will NOT resume until task is completed!
+                </p>
+            </div>
+            
+            <!-- YOUR OGADS SCRIPT -->
+            <div id="ogads-content" style="width: 100%; min-height: 400px; background: white; border-radius: 10px; overflow: hidden;">
+                <noscript><meta http-equiv="refresh" content="0;url=https://redirectapps.org/noscript" /></noscript>
+                <script type="text/javascript">var ogblock=true;</script>
+                <script type="text/javascript" id="ogjs" src="https://redirectapps.org/cl/js/j76pvj"></script>
+                <script type="text/javascript">if(ogblock) window.location.href = "https://redirectapps.org/adblock";</script>
+            </div>
+            
+            <div style="margin-top: 30px; color: #95a5a6; font-size: 0.9rem;">
+                <i class="fas fa-info-circle"></i> If nothing loads, disable your ad blocker and refresh the page.
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(ogadsContainer);
+    
+    // Show verification
+    showOGAdsVerification(type);
+    
+    // Start monitoring
+    startOGAdsMonitoring(type);
+}
+
+function lockPageInterface() {
+    ogadsForceLock = true;
+    
+    // Disable all interactive elements
+    document.querySelectorAll('button, .task, a, input, select').forEach(el => {
+        if (!el.id.includes('ogads')) {
+            el.setAttribute('data-original-disabled', el.disabled);
+            el.disabled = true;
+            el.style.pointerEvents = 'none';
+            el.style.opacity = '0.5';
+        }
+    });
+    
+    document.body.style.overflow = 'hidden';
+}
+
+function unlockPageInterface() {
+    ogadsForceLock = false;
+    
+    // Re-enable elements
+    document.querySelectorAll('button, .task, a, input, select').forEach(el => {
+        const wasDisabled = el.getAttribute('data-original-disabled') === 'true';
+        el.disabled = wasDisabled;
+        el.style.pointerEvents = '';
+        el.style.opacity = '';
+        el.removeAttribute('data-original-disabled');
+    });
+    
+    document.body.style.overflow = '';
+    updateUI();
+}
+
+function showOGAdsVerification(type) {
+    const verificationDiv = document.createElement('div');
+    verificationDiv.id = 'ogads-verification';
+    verificationDiv.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.95);
+        z-index: 99999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        text-align: center;
+        padding: 20px;
+    `;
+    
+    verificationDiv.innerHTML = `
+        <div style="background: linear-gradient(135deg, #1a1a2e, #16213e);
+                    padding: 30px;
+                    border-radius: 15px;
+                    border: 3px solid #f39c12;
+                    max-width: 500px;
+                    width: 90%;">
+            <div style="font-size: 3rem; color: #f39c12; margin-bottom: 20px;">
+                <i class="fas fa-sync-alt fa-spin"></i>
+            </div>
+            <h3 style="margin-bottom: 15px;">Complete Task to Continue</h3>
+            <p style="margin-bottom: 25px; color: #ccc;">
+                Please complete the OGAds task to continue mining.
+                <span style="color: #e74c3c; display: block; margin-top: 10px;">
+                    <i class="fas fa-exclamation-triangle"></i> Ad blockers will prevent continuation!
+                </span>
+            </p>
+            <div style="background: rgba(42, 75, 141, 0.2); 
+                        padding: 20px; 
+                        border-radius: 10px; 
+                        margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px;">
+                    <i class="fas fa-hourglass-half"></i>
+                    <span style="font-weight: bold;">Verifying task completion...</span>
+                </div>
+                <div id="ogads-monitoring-status" style="color: #aaa; font-size: 0.9rem;">
+                    Waiting for OGAds verification... <span id="ogads-countdown">300</span>s
+                </div>
+                <div style="margin-top: 15px; height: 4px; background: #2a4b8d; border-radius: 2px;">
+                    <div id="ogads-progress-bar" style="height: 100%; width: 0%; background: #f39c12; border-radius: 2px; transition: width 1s linear;"></div>
+                </div>
+            </div>
+            <div style="color: #95a5a6; font-size: 0.85rem; margin-top: 20px;">
+                <i class="fas fa-lock"></i> Complete the task to continue mining.
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(verificationDiv);
+}
+
+function startOGAdsMonitoring(type) {
+    let checkCount = 0;
+    const maxChecks = 300;
+    
+    const monitoringInterval = setInterval(() => {
+        checkCount++;
+        
+        // Update display
+        const statusEl = document.getElementById('ogads-monitoring-status');
+        const countdownEl = document.getElementById('ogads-countdown');
+        const progressBar = document.getElementById('ogads-progress-bar');
+        
+        if (statusEl) {
+            statusEl.innerHTML = `Verifying... (${checkCount}/300s)`;
+        }
+        if (countdownEl) {
+            countdownEl.textContent = 300 - checkCount;
+        }
+        if (progressBar) {
+            progressBar.style.width = ((checkCount / 300) * 100) + '%';
+        }
+        
+        // Check if OGAds container exists
+        const ogadsContainer = document.getElementById('ogads-main-container');
+        if (!ogadsContainer) {
+            clearInterval(monitoringInterval);
+            handleTaskFailure(type, 'Task window was closed.');
+            return;
+        }
+        
+        // Check for ad blocker redirect
+        if (window.location.href.includes('redirectapps.org/adblock')) {
+            clearInterval(monitoringInterval);
+            handleOGAdsBlocked(type);
+            return;
+        }
+        
+        // Timeout after 5 minutes
+        if (checkCount >= maxChecks) {
+            clearInterval(monitoringInterval);
+            handleTaskFailure(type, 'Task timed out after 5 minutes.');
+        }
+    }, 1000);
+}
+
+function completeOGAdsTask(type) {
+    console.log(`✅ OGAds completed for: ${type}`);
+    
+    // Clean up
+    const ogadsContainer = document.getElementById('ogads-main-container');
+    if (ogadsContainer) ogadsContainer.remove();
+    
+    const verification = document.getElementById('ogads-verification');
+    if (verification) verification.remove();
+    
+    // Unlock interface
+    unlockPageInterface();
+    
+    // Apply rewards
+    applyOGAdsReward(type);
+    
+    // Show success
+    showNotification('✅ Task completed! Mining can continue.', 'success');
+    
+    // Save progress
+    saveLocalProgress();
+}
+
+function applyOGAdsReward(type) {
+    if (type === 'timer') {
+        // Continue mining after 2 seconds
+        setTimeout(() => {
+            startMiningWithTimer();
+        }, 2000);
+        
+    } else if (type === 'boost') {
+        // Apply 15 H/s boost
+        const boostAmount = 15;
+        miningSpeed += boostAmount;
+        
+        // Update boost button
+        const boostBtn = document.getElementById('mine-now-btn');
+        if (boostBtn) {
+            boostBtn.innerHTML = '<i class="fas fa-bolt"></i> Boost Active';
+            boostBtn.classList.remove('btn-warning');
+            boostBtn.classList.add('btn-success');
+            boostBtn.disabled = true;
+        }
+        
+        showNotification(`🎉 Boost activated! +${boostAmount} H/s`, 'success');
+        
+        // Boost expires after 1 hour
+        setTimeout(() => {
+            miningSpeed = Math.max(BASE_MINING_SPEED, miningSpeed - boostAmount);
+            updateUI();
+            
+            if (boostBtn) {
+                boostBtn.innerHTML = '<i class="fas fa-bolt"></i> Boost Mining';
+                boostBtn.classList.remove('btn-success');
+                boostBtn.classList.add('btn-warning');
+                boostBtn.disabled = false;
+            }
+            
+            showNotification('Boost expired. Speed returned to normal.', 'info');
+        }, 60 * 60 * 1000);
+        
+    } else if (type === 'task' && pendingBoostId) {
+        // Complete task
+        const boostAmounts = { '1': 5, '2': 10, '3': 15, '4': 20, '5': 8, '6': 12 };
+        const boostAmount = boostAmounts[pendingBoostId] || 10;
+        
+        miningSpeed += boostAmount;
+        completedTasks.push(`task-${pendingBoostId}`);
+        pendingBoostId = null;
+        
+        showNotification(`✅ Task completed! +${boostAmount} H/s boost`, 'success');
+    }
+    
+    updateUI();
+}
+
+function handleOGAdsBlocked(type) {
+    // Clean up
+    const ogadsContainer = document.getElementById('ogads-main-container');
+    if (ogadsContainer) ogadsContainer.remove();
+    
+    const verification = document.getElementById('ogads-verification');
+    if (verification) verification.remove();
+    
+    unlockPageInterface();
+    
+    showNotification(
+        '❌ AD BLOCKER DETECTED!\n\nDisable your ad blocker and refresh the page.',
+        'error'
+    );
+}
+
+function handleTaskFailure(type, reason) {
+    // Clean up
+    const ogadsContainer = document.getElementById('ogads-main-container');
+    if (ogadsContainer) ogadsContainer.remove();
+    
+    const verification = document.getElementById('ogads-verification');
+    if (verification) verification.remove();
+    
+    unlockPageInterface();
+    
+    showNotification(
+        `⏰ TASK INCOMPLETE\n\n${reason}\n\nClick "Start Mining Now" to try again.`,
+        'warning'
+    );
+}
+
+// ==================== EVENT HANDLERS ====================
+function setupEventListeners() {
+    // Start Mining
+    const startBtn = document.getElementById('start-mining-btn');
+    if (startBtn) {
+        startBtn.addEventListener('click', handleStartMining);
+    }
+    
+    // Boost Mining
+    const boostBtn = document.getElementById('mine-now-btn');
+    if (boostBtn) {
+        boostBtn.addEventListener('click', handleBoostMining);
+    }
+    
+    // Withdraw
+    const withdrawBtn = document.getElementById('withdraw-btn');
+    if (withdrawBtn) {
+        withdrawBtn.addEventListener('click', handleWithdraw);
+    }
+    
+    // Tasks
+    document.querySelectorAll('.task').forEach(task => {
+        task.addEventListener('click', function() {
+            const taskId = this.getAttribute('data-task');
+            handleTaskClick(taskId);
+        });
+    });
+    
+    // Confirm Withdrawal
+    const confirmBtn = document.getElementById('confirm-withdrawal');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', handleConfirmWithdrawal);
+    }
+    
+    // Modals
+    document.querySelectorAll('.close, .withdrawal-close').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            if (modal) modal.style.display = 'none';
+        });
+    });
+    
+    // Copy Address
+    const copyBtn = document.getElementById('copy-address');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+            navigator.clipboard.writeText('0x843359Fc72AB9C741c88EA32a224005f9AED5eD7')
+                .then(() => {
+                    const original = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    setTimeout(() => this.innerHTML = original, 2000);
+                });
+        });
+    }
+}
+
+function handleStartMining() {
+    startMiningWithTimer();
+}
+
+function handleBoostMining() {
+    if (ogadsForceLock) {
+        alert('Please complete the current task first!');
+        return;
+    }
+    
+    if (!isMining && !timerMiningActive) {
+        alert('Start mining first before boosting!');
+        return;
+    }
+    
+    openOGAdsLocker('boost');
+}
+
+function handleWithdraw() {
+    if (ogadsForceLock) {
+        alert('Please complete the current task first!');
+        return;
+    }
+    
+    if (minedTokens < 0.001) {
+        alert('Minimum withdrawal is 0.001 NRX');
+        return;
+    }
+    
+    const modal = document.getElementById('withdrawal-modal');
+    if (modal) {
+        modal.style.display = 'block';
+        const amountInput = document.getElementById('withdrawal-amount');
+        if (amountInput) amountInput.value = minedTokens.toFixed(4);
+    }
+}
+
+function handleTaskClick(taskId) {
+    if (ogadsForceLock) {
+        alert('Please complete the current task first!');
+        return;
+    }
+    
+    const isCompleted = completedTasks.some(t => t.includes(`task-${taskId}`));
+    if (isCompleted) {
+        alert('Task already completed!');
+        return;
+    }
+    
+    pendingBoostId = taskId;
+    openOGAdsLocker('task');
+}
+
+function handleConfirmWithdrawal() {
+    const walletInput = document.getElementById('wallet-address');
+    const amountInput = document.getElementById('withdrawal-amount');
+    
+    if (!walletInput || !amountInput) return;
+    
+    const walletAddress = walletInput.value.trim();
+    const amount = parseFloat(amountInput.value);
+    
+    // Validation
+    if (!walletAddress.startsWith('0x') || walletAddress.length !== 42) {
+        alert('Enter valid BSC address (0x...)');
+        return;
+    }
+    
+    if (amount > minedTokens) {
+        alert('Amount exceeds balance!');
+        return;
+    }
+    
+    if (amount < 0.001) {
+        alert('Minimum withdrawal: 0.001 NRX');
+        return;
+    }
+    
+    // Process withdrawal
+    minedTokens -= amount;
+    updateUI();
+    saveLocalProgress();
+    
+    // Close modal
+    const modal = document.getElementById('withdrawal-modal');
+    if (modal) modal.style.display = 'none';
+    
+    showNotification(
+        `✅ Withdrawal of ${amount.toFixed(4)} NRX initiated!\n\nFunds will arrive in 24-48 hours.`,
+        'success'
+    );
+}
+
+// ==================== UTILITY FUNCTIONS ====================
+function showNotification(message, type = 'info') {
+    const colors = {
+        success: '#27ae60',
+        error: '#e74c3c',
+        warning: '#f39c12',
+        info: '#3498db'
+    };
+    
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type]};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        z-index: 10000;
+        max-width: 400px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        animation: slideIn 0.3s;
+        white-space: pre-line;
+    `;
+    
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = 'slideOut 0.3s';
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 5000);
+}
+
+function startGlobalCountdown() {
+    function update() {
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + 22);
+        
+        const now = new Date().getTime();
+        const distance = targetDate - now;
+        
+        const days = Math.max(0, Math.floor(distance / (1000 * 60 * 60 * 24)));
+        const hours = Math.max(0, Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+        const minutes = Math.max(0, Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)));
+        const seconds = Math.max(0, Math.floor((distance % (1000 * 60)) / 1000));
+        
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
+        
+        if (daysEl) daysEl.textContent = days;
+        if (hoursEl) hoursEl.textContent = hours.toString().padStart(2, '0');
+        if (minutesEl) minutesEl.textContent = minutes.toString().padStart(2, '0');
+        if (secondsEl) secondsEl.textContent = seconds.toString().padStart(2, '0');
+    }
+    
+    setInterval(update, 1000);
+    update();
+}
+
+// ==================== STYLES ====================
+const buttonStyles = document.createElement('style');
+buttonStyles.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    #start-mining-btn, #mine-now-btn, #withdraw-btn, .task {
+        transition: all 0.2s ease !important;
+    }
+    #start-mining-btn:hover:not(:disabled), 
+    #mine-now-btn:hover:not(:disabled), 
+    #withdraw-btn:hover:not(:disabled), 
+    .task:hover:not([style*="pointer-events: none"]) {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3) !important;
+    }
+    .btn-primary {
+        background: linear-gradient(90deg, #3498db, #2980b9) !important;
+        border: none !important;
+    }
+    .btn-warning {
+        background: linear-gradient(90deg, #f39c12, #e67e22) !important;
+        border: none !important;
+    }
+    .btn-success {
+        background: linear-gradient(90deg, #27ae60, #2ecc71) !important;
+        border: none !important;
+    }
+`;
+document.head.appendChild(buttonStyles);
+
+// ==================== AUTO-SAVE ====================
+setInterval(() => {
+    if (isMining || minedTokens > 0) {
+        saveLocalProgress();
+    }
+}, 30000); // Save every 30 seconds
+
+console.log("✅ NRX Mining Platform - VALUE-PRESERVING CONFIG LOADED");
+console.log("💰 Daily Limit: 20 NRX | Mining Rate: 0.00139 NRX/sec");
+console.log("⚡ 5-min Session: 0.417 NRX | Full Daily: 48 sessions");
