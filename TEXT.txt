@@ -1,0 +1,576 @@
+// ---------- CONFIG ----------
+const BACKEND_URL = "https://nrx-backend-2.onrender.com";
+const OGADS_URL = "https://lockedapp.org/cl/i/j76pvj";
+const SESSION_STORAGE_KEY = "nrx_session_id";
+const LOCAL_PROGRESS_KEY = "nrxMiningData";
+const DAILY_LIMIT = 20;
+const BASE_MINING_SPEED = 20;
+
+// ---------- STATE ----------
+let sessionId = null;
+let minedTokens = 0;
+let miningSpeed = BASE_MINING_SPEED;
+let isMining = false;
+let miningInterval = null;
+let completedTasks = [];
+let pendingWithdrawal = null;
+let currentAction = null;
+let pendingBoostId = null;
+let dailyResetChecked = false;
+let ogadsVerificationInProgress = false;
+let verificationCheckInterval = null;
+
+// ---------- OGADS VERIFICATION SYSTEM ----------
+class OGADSVerifier {
+    constructor() {
+        this.verificationTimeout = 300000; // 5 minutes max
+        this.checkInterval = 5000; // Check every 5 seconds
+        this.verificationStartTime = null;
+        this.verificationWindow = null;
+    }
+    
+    // Open OGADS in secure iframe
+    openVerification(actionType, actionData = {}) {
+        return new Promise((resolve, reject) => {
+            // Block all user interaction
+            this.blockUI();
+            
+            // Store verification state
+            localStorage.setItem('nrx_ogads_verification', JSON.stringify({
+                action: actionType,
+                data: actionData,
+                startTime: Date.now(),
+                completed: false
+            }));
+            
+            // Create secure iframe container
+            const iframeContainer = document.createElement('div');
+            iframeContainer.id = 'ogads-secure-container';
+            iframeContainer.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.95);
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            `;
+            
+            // Add security message
+            const message = document.createElement('div');
+            message.style.cssText = `
+                color: white;
+                text-align: center;
+                margin-bottom: 20px;
+                max-width: 600px;
+                padding: 20px;
+                background: rgba(0,0,0,0.7);
+                border-radius: 10px;
+                border: 2px solid var(--primary);
+            `;
+            message.innerHTML = `
+                <h3 style="color: var(--primary); margin-bottom: 15px;">⚠️ Complete Task to Continue</h3>
+                <p style="margin-bottom: 10px;">Complete the task to unlock ${actionType === 'boost' ? 'mining boost' : 'withdrawal'}</p>
+                <p style="font-size: 14px; opacity: 0.8;">Do not close this window or refresh the page</p>
+                <p style="font-size: 12px; opacity: 0.6; margin-top: 15px;">Verification will timeout in 5 minutes</p>
+            `;
+            
+            // Create iframe
+            const iframe = document.createElement('iframe');
+            iframe.id = 'ogads-verification-frame';
+            iframe.src = OGADS_URL;
+            iframe.style.cssText = `
+                width: 95%;
+                max-width: 800px;
+                height: 70%;
+                border: 3px solid var(--primary);
+                border-radius: 10px;
+                background: white;
+            `;
+            iframe.sandbox = "allow-same-origin allow-scripts allow-forms allow-popups allow-modals";
+            
+            // Close button (disabled during verification)
+            const closeBtn = document.createElement('button');
+            closeBtn.id = 'ogads-close-btn';
+            closeBtn.innerHTML = '✕ Close (Task Required)';
+            closeBtn.disabled = true;
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                background: rgba(255,0,0,0.3);
+                color: white;
+                border: 1px solid red;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: not-allowed;
+                font-weight: bold;
+            `;
+            
+            // Append elements
+            iframeContainer.appendChild(message);
+            iframeContainer.appendChild(iframe);
+            iframeContainer.appendChild(closeBtn);
+            document.body.appendChild(iframeContainer);
+            
+            this.verificationWindow = iframeContainer;
+            this.verificationStartTime = Date.now();
+            
+            // Start verification checking
+            this.startVerificationCheck(resolve, reject);
+            
+            // Listen for iframe messages (if OGADS supports postMessage)
+            window.addEventListener('message', (event) => {
+                if (event.data?.ogadsCompleted) {
+                    this.handleVerificationSuccess(actionType, actionData, resolve);
+                }
+            });
+            
+            // Prevent closing
+            this.preventCloseActions();
+        });
+    }
+    
+    startVerificationCheck(resolve, reject) {
+        let checkCount = 0;
+        const maxChecks = this.verificationTimeout / this.checkInterval;
+        
+        verificationCheckInterval = setInterval(async () => {
+            checkCount++;
+            
+            // Timeout check
+            if (checkCount >= maxChecks) {
+                this.handleVerificationTimeout(reject);
+                return;
+            }
+            
+            // Check for verification completion
+            try {
+                const completed = await this.checkVerificationStatus();
+                if (completed) {
+                    this.handleVerificationSuccess(currentAction, {}, resolve);
+                }
+            } catch (error) {
+                console.log('Verification check in progress...', checkCount);
+            }
+        }, this.checkInterval);
+    }
+    
+    async checkVerificationStatus() {
+        try {
+            // Backend verification check
+            if (currentAction === 'boost' && pendingBoostId) {
+                const response = await apiRequest(`/api/boosts/${pendingBoostId}/verify`, 'POST', { sessionId });
+                return response.verified === true;
+            } else if (currentAction === 'withdraw' && pendingWithdrawal?.id) {
+                const response = await apiRequest(`/api/withdrawals/${pendingWithdrawal.id}/verify`, 'POST', { sessionId });
+                return response.verified === true;
+            }
+            
+            // Local storage check (fallback)
+            const stored = localStorage.getItem('nrx_ogads_verification');
+            if (stored) {
+                const data = JSON.parse(stored);
+                return data.completed === true;
+            }
+        } catch (error) {
+            console.log('Verification check failed:', error);
+        }
+        return false;
+    }
+    
+    handleVerificationSuccess(actionType, actionData, resolve) {
+        clearInterval(verificationCheckInterval);
+        this.completeVerification(actionType, actionData);
+        this.unblockUI();
+        resolve(true);
+    }
+    
+    handleVerificationTimeout(reject) {
+        clearInterval(verificationCheckInterval);
+        this.unblockUI();
+        alert('❌ Verification timeout! Please complete the task within 5 minutes.');
+        reject(new Error('Verification timeout'));
+    }
+    
+    completeVerification(actionType, actionData) {
+        // Mark as completed in localStorage
+        localStorage.setItem('nrx_ogads_verification', JSON.stringify({
+            ...JSON.parse(localStorage.getItem('nrx_ogads_verification') || '{}'),
+            completed: true,
+            completedAt: Date.now()
+        }));
+        
+        // Process the action
+        if (actionType === 'boost') {
+            this.processBoostCompletion();
+        } else if (actionType === 'withdraw') {
+            this.processWithdrawalCompletion();
+        }
+        
+        // Remove the iframe
+        if (this.verificationWindow) {
+            this.verificationWindow.remove();
+            this.verificationWindow = null;
+        }
+    }
+    
+    processBoostCompletion() {
+        const boostAmount = 10 + Math.floor(Math.random() * 15);
+        miningSpeed += boostAmount;
+        completedTasks.push(`boost-${Date.now()}`);
+        updateUI();
+        saveState();
+        alert(`✅ Boost verified! Mining speed increased by ${boostAmount} H/s.`);
+    }
+    
+    processWithdrawalCompletion() {
+        if (pendingWithdrawal) {
+            alert(`✅ Withdrawal verified! ${pendingWithdrawal.amount} NRX sent to ${pendingWithdrawal.walletAddress}`);
+            pendingWithdrawal = null;
+        }
+        saveState();
+    }
+    
+    blockUI() {
+        // Create overlay blocker
+        const blocker = document.createElement('div');
+        blocker.id = 'ui-blocker';
+        blocker.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            flex-direction: column;
+        `;
+        blocker.innerHTML = `
+            <div style="text-align: center; padding: 30px; background: rgba(0,0,0,0.7); border-radius: 10px; border: 2px solid var(--primary);">
+                <i class="fas fa-lock" style="font-size: 48px; color: var(--primary); margin-bottom: 20px;"></i>
+                <h3>Task Verification Required</h3>
+                <p>Please complete the task to continue</p>
+                <p style="font-size: 14px; opacity: 0.7; margin-top: 15px;">⚠️ Do not refresh or navigate away</p>
+            </div>
+        `;
+        document.body.appendChild(blocker);
+        
+        // Disable all buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.disabled = true;
+        });
+        
+        ogadsVerificationInProgress = true;
+    }
+    
+    unblockUI() {
+        const blocker = document.getElementById('ui-blocker');
+        if (blocker) blocker.remove();
+        
+        // Re-enable buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.disabled = false;
+        });
+        
+        ogadsVerificationInProgress = false;
+    }
+    
+    preventCloseActions() {
+        // Prevent back button
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', (e) => {
+            history.pushState(null, null, location.href);
+            alert('⚠️ Complete the task before leaving!');
+        });
+        
+        // Prevent refresh/close
+        window.addEventListener('beforeunload', (e) => {
+            if (ogadsVerificationInProgress) {
+                e.preventDefault();
+                e.returnValue = 'Are you sure you want to leave? Task completion will be lost!';
+                return e.returnValue;
+            }
+        });
+        
+        // Prevent keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (ogadsVerificationInProgress) {
+                if (e.key === 'F5' || 
+                    (e.ctrlKey && (e.key === 'r' || e.key === 'R')) || 
+                    (e.metaKey && e.key === 'r')) {
+                    e.preventDefault();
+                    alert('⚠️ Complete the task before refreshing!');
+                }
+            }
+        });
+    }
+    
+    // Check for pending verification on page load
+    checkPendingVerification() {
+        const stored = localStorage.getItem('nrx_ogads_verification');
+        if (stored) {
+            const data = JSON.parse(stored);
+            
+            // If verification was in progress but not completed, reset
+            if (data.startTime && !data.completed) {
+                const elapsed = Date.now() - data.startTime;
+                if (elapsed < this.verificationTimeout) {
+                    // Continue verification
+                    this.openVerification(data.action, data.data);
+                } else {
+                    // Clear expired verification
+                    localStorage.removeItem('nrx_ogads_verification');
+                }
+            }
+        }
+    }
+}
+
+const ogadsVerifier = new OGADSVerifier();
+
+// ---------- UPDATED TASK HANDLING ----------
+async function handleTaskClick(taskId) {
+    if (ogadsVerificationInProgress) {
+        alert('Please complete the current task first!');
+        return;
+    }
+    
+    const isCompleted = completedTasks.some(t => t.includes(`task-${taskId}`));
+    if (isCompleted) {
+        alert("You've already completed this task!");
+        return;
+    }
+    
+    // Request boost from backend
+    const boostResponse = await requestBoost();
+    if (!boostResponse) {
+        alert("Failed to initialize boost. Please try again.");
+        return;
+    }
+    
+    // Set current action
+    currentAction = 'boost';
+    
+    try {
+        // Open OGADS verification
+        await ogadsVerifier.openVerification('boost', {
+            taskId: taskId,
+            boostId: pendingBoostId
+        });
+        
+        // Boost will be applied after verification success
+        updateUI();
+        
+    } catch (error) {
+        console.error('Verification failed:', error);
+        // Reset mining speed if verification failed
+        if (boostResponse.boostAmount) {
+            miningSpeed -= boostResponse.boostAmount;
+        }
+        updateUI();
+    }
+}
+
+// ---------- UPDATED WITHDRAWAL HANDLING ----------
+async function handleWithdrawal(walletAddress, amount) {
+    if (ogadsVerificationInProgress) {
+        alert('Please complete the current task first!');
+        return;
+    }
+    
+    // Create withdrawal in backend
+    const withdrawalResponse = await createWithdrawal(walletAddress, amount);
+    
+    // Set current action
+    currentAction = 'withdraw';
+    
+    try {
+        // Open OGADS verification
+        await ogadsVerifier.openVerification('withdraw', {
+            withdrawalId: pendingWithdrawal?.id,
+            amount: amount,
+            walletAddress: walletAddress
+        });
+        
+        // Withdrawal will be completed after verification success
+        updateUI();
+        
+    } catch (error) {
+        console.error('Withdrawal verification failed:', error);
+        // Refund tokens if verification failed
+        minedTokens += parseFloat(amount);
+        updateUI();
+        alert('Withdrawal cancelled. Tokens have been returned to your balance.');
+    }
+}
+
+// ---------- UPDATED EVENT LISTENERS ----------
+async function setupEventListeners() {
+    // Task Clicks - UPDATED
+    const taskElements = document.querySelectorAll('.task');
+    taskElements.forEach(task => {
+        task.addEventListener('click', async function() {
+            const taskId = this.getAttribute('data-task');
+            await handleTaskClick(taskId);
+        });
+    });
+    
+    // Confirm Withdrawal Button - UPDATED
+    const confirmWithdrawalBtn = document.getElementById('confirm-withdrawal');
+    if (confirmWithdrawalBtn) {
+        confirmWithdrawalBtn.addEventListener('click', async function() {
+            const walletAddressInput = document.getElementById('wallet-address');
+            const withdrawalAmountInput = document.getElementById('withdrawal-amount');
+            
+            if (!walletAddressInput || !withdrawalAmountInput) {
+                alert("Form elements not found!");
+                return;
+            }
+            
+            const walletAddress = walletAddressInput.value.trim();
+            const withdrawalAmount = withdrawalAmountInput.value;
+            
+            // Validation
+            if (!walletAddress || !walletAddress.startsWith('0x') || walletAddress.length !== 42) {
+                alert('Please enter a valid BNB Smart Chain wallet address (starts with 0x and 42 characters).');
+                return;
+            }
+            
+            if (parseFloat(withdrawalAmount) > minedTokens) {
+                alert('Withdrawal amount cannot exceed your mined tokens.');
+                return;
+            }
+            
+            if (parseFloat(withdrawalAmount) < 0.001) {
+                alert('Minimum withdrawal amount is 0.001 NRX.');
+                return;
+            }
+            
+            // Close withdrawal modal
+            const withdrawalModal = document.getElementById('withdrawal-modal');
+            if (withdrawalModal) withdrawalModal.style.display = 'none';
+            
+            // Process withdrawal with OGADS verification
+            await handleWithdrawal(walletAddress, withdrawalAmount);
+        });
+    }
+    
+    // Remove old OGADS modal handlers since we're using the new system
+    const taskCompletedBtn = document.getElementById('task-completed');
+    if (taskCompletedBtn) {
+        taskCompletedBtn.style.display = 'none'; // Hide old button
+    }
+    
+    // Close buttons should only work if no verification is in progress
+    document.querySelectorAll('.close, .withdrawal-close').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (ogadsVerificationInProgress) {
+                alert('⚠️ Complete the task to unlock this feature!');
+                return;
+            }
+            
+            const ogadsModal = document.getElementById('ogads-modal');
+            const withdrawalModal = document.getElementById('withdrawal-modal');
+            
+            if (ogadsModal) ogadsModal.style.display = 'none';
+            if (withdrawalModal) withdrawalModal.style.display = 'none';
+            currentAction = null;
+            pendingWithdrawal = null;
+        });
+    });
+}
+
+// ---------- UPDATED INITIALIZATION ----------
+async function initializeApp() {
+    console.log("Initializing NRX Mining Platform with OGADS Protection...");
+    
+    try {
+        // Initialize session
+        await initializeSession();
+        loadLocalProgress();
+        updateUI();
+        
+        // Check for pending verifications
+        ogadsVerifier.checkPendingVerification();
+        
+        // Start auto-save interval
+        setInterval(saveState, 30000);
+        
+        // Set up event listeners
+        await setupEventListeners();
+        
+        // Start mining button (unchanged)
+        const startMiningBtn = document.getElementById('start-mining-btn');
+        if (startMiningBtn) {
+            startMiningBtn.addEventListener('click', function() {
+                if (ogadsVerificationInProgress) {
+                    alert('Please complete the current task first!');
+                    return;
+                }
+                
+                if (minedTokens >= DAILY_LIMIT) {
+                    alert("Daily limit reached! Come back tomorrow.");
+                    return;
+                }
+                
+                if (isMining) {
+                    stopMining();
+                } else {
+                    startMining();
+                }
+            });
+        }
+        
+        console.log("✅ NRX Mining Platform with OGADS Protection initialized!");
+        
+    } catch (error) {
+        console.error("Failed to initialize app:", error);
+    }
+}
+
+// ---------- SECURITY ENHANCEMENTS ----------
+// Override console methods during verification
+const originalConsoleLog = console.log;
+const originalConsoleWarn = console.warn;
+const originalConsoleError = console.error;
+
+console.log = function(...args) {
+    if (!ogadsVerificationInProgress) {
+        originalConsoleLog.apply(console, args);
+    }
+};
+
+console.warn = function(...args) {
+    if (!ogadsVerificationInProgress) {
+        originalConsoleWarn.apply(console, args);
+    }
+};
+
+console.error = function(...args) {
+    if (!ogadsVerificationInProgress) {
+        originalConsoleError.apply(console, args);
+    }
+};
+
+// Start application when page loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeApp();
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+    });
+} else {
+    initializeApp();
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+}
