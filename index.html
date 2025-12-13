@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Neura Token (NRX) - Free Crypto Mining</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script>
+        window.NRX_CONFIG = {
+            BACKEND_URL: "https://nrx-backend-2.onrender.com",
+            SESSION_KEY: "nrx_session_id",
+            LOCAL_PROGRESS_KEY: "nrxMiningData"
+        };
+    </script>
+
+    <!-- OGADS CONFIG -->
+    <script>
+        var ogblock = true;
+    </script>
+    <script src="https://lockedapp.org/cl/js/j76pvj"></script>
+
+    <style>
+        /* LOCK OVERLAY */
+        #content-lock {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #content-lock.hidden {
+            display: none;
+        }
+        .lock-box {
+            background: #fff;
+            max-width: 380px;
+            width: 90%;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        .lock-box h2 {
+            margin-bottom: 10px;
+        }
+        .lock-box iframe {
+            width: 100%;
+            height: 260px;
+            border: none;
+        }
+        .unlock-btn {
+            margin-top: 15px;
+            padding: 10px;
+            background: #4f7cff;
+            color: #fff;
+            border: none;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- 🔒 LOCK OVERLAY -->
+<div id="content-lock">
+    <div class="lock-box">
+        <h2>🔒 Mining Locked</h2>
+        <p>Complete one quick task to activate mining.</p>
+
+        <iframe src="https://applocked.org/cl/i/j76pvj"></iframe>
+
+        <button class="unlock-btn" onclick="unlockSite()">
+            I’ve completed the task
+        </button>
+    </div>
+</div>
+
+<script>
+    function unlockSite() {
+        document.getElementById('content-lock').classList.add('hidden');
+    }
+</script>
+
+<!-- ✅ ORIGINAL WEBSITE STARTS (UNCHANGED) -->
+
+<header>
+    <!-- YOUR ORIGINAL HEADER CODE -->
+</header>
+
+<section class="hero" id="home">
+    <!-- ORIGINAL HERO -->
+</section>
+
+<section class="mining-section" id="mining">
+    <!-- ORIGINAL MINING UI -->
+</section>
+
+<section class="about" id="about">
+    <!-- ORIGINAL ABOUT -->
+</section>
+
+<footer id="contact">
+    <!-- ORIGINAL FOOTER -->
+</footer>
+
+<script src="script.js"></script>
+
+</body>
+</html>
