@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NRX Mining</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- OGADS HARD BLOCK FLAG -->
+  <script>
+    var ogblock = true;
+  </script>
+
+  <!-- OGADS SCRIPT -->
+  <script src="https://lockedapp.org/cl/js/j76pvj"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0b0b0b;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: auto;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .card {
+      background: #111;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.6);
+    }
+
+    h1 {
+      color: #f39c12;
+      margin-bottom: 10px;
+    }
+
+    .balance {
+      font-size: 28px;
+      margin: 15px 0;
+      color: #2ecc71;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .btn-start {
+      background: #f39c12;
+      color: #000;
+      font-weight: bold;
+    }
+
+    .timer {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    /* OGADS FULL PAGE BLOCK */
+    .ogads-block {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .ogads-box {
+      background: #111;
+      border-radius: 12px;
+      padding: 25px;
+      max-width: 400px;
+      border: 2px solid #f39c12;
+    }
+
+    .ogads-box h2 {
+      color: #f39c12;
+      margin-bottom: 10px;
+    }
+
+    .ogads-box p {
+      font-size: 14px;
+      color: #ccc;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- OGADS HARD BLOCK FALLBACK -->
+<script>
+  if (ogblock) {
+    document.body.innerHTML = `
+      <div class="ogads-block">
+        <div class="ogads-box">
+          <h2>⛏ Action Required</h2>
+          <p>
+            Mining is temporarily paused.<br><br>
+            Please complete <b>one quick task</b> to continue mining.
+          </p>
+          <p style="margin-top:10px;font-size:12px;">
+            This helps keep mining free for everyone.
+          </p>
+        </div>
+      </div>
+    `;
+  }
+</script>
+
+<!-- MAIN APP -->
+<div class="container">
+  <div class="card">
+    <h1>NRX Mining</h1>
+    <div class="balance">
+      <span id="balance">0.0000</span> NRX
+    </div>
+    <button id="startMiningBtn" class="btn-start">
+      ⛏ Start Mining
+    </button>
+    <div class="timer">
+      Mining session lasts 5 minutes
+    </div>
+  </div>
+</div>
+
+<!-- MAIN SCRIPT -->
+<script src="script.js"></script>
+
+</body>
+      </html>
