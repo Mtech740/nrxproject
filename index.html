@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neura Token (NRX) - Mining Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/color/96/000000/blockchain-technology.png">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="crypto-loader">
+                <div class="coin"></div>
+                <div class="coin"></div>
+                <div class="coin"></div>
+            </div>
+            <h2>Loading Neura Mining Platform</h2>
+            <p>Initializing blockchain connection...</p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header with Your Logo -->
+        <header class="header">
+            <div class="logo-container">
+                <div class="logo">
+                    <!-- Your Logo Image -->
+                    <img src="1000667838.jpg" alt="Neura Token Logo" class="logo-image">
+                    <h1>NEURA<span>TOKEN</span></h1>
+                </div>
+                <p class="tagline">AI-Powered Blockchain Mining</p>
+            </div>
+            
+            <div class="network-status">
+                <div class="status-indicator connected"></div>
+                <span>BSC Network</span>
+                <div class="contract-address">
+                    <span id="contract-address">0x843359Fc72AB9C741c88EA32a224005f9AED5eD7</span>
+                    <button id="copy-address" class="btn-small">
+                        <i class="far fa-copy"></i> Copy
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <main class="dashboard">
+            <!-- Mining Stats -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Mined Tokens</h3>
+                        <p class="stat-value" id="mined-tokens">0.0000 NRX</p>
+                        <p class="stat-label">Daily limit: 20 NRX</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Mining Speed</h3>
+                        <p class="stat-value" id="mining-speed">20 H/s</p>
+                        <p class="stat-label">Hash rate per second</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Active Boosts</h3>
+                        <p class="stat-value" id="active-boosts">0</p>
+                        <p class="stat-label">Speed multipliers</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Daily Progress</h3>
+                        <p class="stat-value" id="daily-progress">0%</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Mining Control -->
+            <section class="mining-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-hard-hat"></i> Mining Control</h2>
+                    <div class="mining-timer" id="mining-timer">
+                        <i class="far fa-clock"></i> 00:00:00
+                    </div>
+                </div>
+                
+                <div class="mining-controls">
+                    <button id="start-mining-btn" class="btn btn-primary btn-large">
+                        <i class="fas fa-play"></i> Start Mining Now
+                    </button>
+                    
+                    <button id="mine-now-btn" class="btn btn-warning btn-large">
+                        <i class="fas fa-bolt"></i> Boost Mining Speed
+                    </button>
+                    
+                    <button id="withdraw-btn" class="btn btn-success btn-large">
+                        <i class="fas fa-wallet"></i> Withdraw NRX
+                    </button>
+                </div>
+                
+                <!-- Mining Cycle Progress -->
+                <div class="mining-cycle-progress">
+                    <div class="cycle-progress-bar">
+                        <div class="cycle-progress-fill" id="cycle-progress-fill"></div>
+                    </div>
+                    <div class="cycle-progress-text">
+                        <span class="cycle-label">Mining Cycle:</span>
+                        <span class="time-left" id="cycle-time-left">05:00</span>
+                    </div>
+                </div>
+                
+                <div class="mining-info">
+                    <p><i class="fas fa-info-circle"></i> Mining runs in 5-minute cycles. Complete tasks between cycles to continue.</p>
+                </div>
+            </section>
+
+            <!-- Boost Mining Section -->
+            <section class="boost-section" id="boost-mining-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-rocket"></i> Boost Your Mining</h2>
+                    <span class="section-subtitle">Complete tasks to increase mining speed</span>
+                </div>
+                
+                <div class="tasks-grid">
+                    <div class="task" data-task="1">
+                        <div class="task-icon">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <h4>Watch Video</h4>
+                        <p>Watch a short video</p>
+                        <span class="task-reward">+10-25 H/s</span>
+                    </div>
+                    
+                    <div class="task" data-task="2">
+                        <div class="task-icon">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <h4>Install App</h4>
+                        <p>Install a recommended app</p>
+                        <span class="task-reward">+15-30 H/s</span>
+                    </div>
+                    
+                    <div class="task" data-task="3">
+                        <div class="task-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h4>Search Website</h4>
+                        <p>Visit a website</p>
+                        <span class="task-reward">+8-20 H/s</span>
+                    </div>
+                    
+                    <div class="task" data-task="4">
+                        <div class="task-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <h4>Complete Survey</h4>
+                        <p>Answer a few questions</p>
+                        <span class="task-reward">+12-28 H/s</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Token Information -->
+            <section class="token-info">
+                <div class="section-header">
+                    <h2><i class="fas fa-info-circle"></i> About Neura Token (NRX)</h2>
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3><i class="fas fa-project-diagram"></i> Blockchain</h3>
+                        <p>Built on BNB Smart Chain (BEP-20)</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3><i class="fas fa-bolt"></i> Total Supply</h3>
+                        <p>1,000,000,000 NRX</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3><i class="fas fa-money-bill-wave"></i> Current Price</h3>
+                        <p>$0.042 USD</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3><i class="fas fa-chart-line"></i> Market Cap</h3>
+                        <p>$42,000,000</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Countdown Timer -->
+            <section class="countdown-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-clock"></i> Next Mining Phase</h2>
+                    <span class="section-subtitle">Next difficulty adjustment in:</span>
+                </div>
+                
+                <div class="countdown-timer">
+                    <div class="countdown-unit">
+                        <span class="countdown-value" id="days">22</span>
+                        <span class="countdown-label">Days</span>
+                    </div>
+                    <div class="countdown-unit">
+                        <span class="countdown-value" id="hours">00</span>
+                        <span class="countdown-label">Hours</span>
+                    </div>
+                    <div class="countdown-unit">
+                        <span class="countdown-value" id="minutes">00</span>
+                        <span class="countdown-label">Minutes</span>
+                    </div>
+                    <div class="countdown-unit">
+                        <span class="countdown-value" id="seconds">00</span>
+                        <span class="countdown-label">Seconds</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Neura Token</h4>
+                    <div class="footer-logo">
+                        <img src="1000667838.jpg" alt="Neura Token Logo" class="footer-logo-image">
+                    </div>
+                    <p>AI-Powered Blockchain Platform</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <a href="#">Whitepaper</a>
+                    <a href="#">Audit Report</a>
+                    <a href="#">Contract</a>
+                    <a href="#">Docs</a>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <a href="#">FAQ</a>
+                    <a href="#">Contact</a>
+                    <a href="#">Report Issue</a>
+                    <a href="#">Terms</a>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Network</h4>
+                    <p>BNB Smart Chain</p>
+                    <p class="network-info">Gas fee: ~$0.01</p>
+                    <p class="network-info">Confirmations: 12</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Neura Token Mining Platform. All rights reserved.</p>
+                <p class="disclaimer">This is a simulation platform for educational purposes.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Withdrawal Modal -->
+    <div id="withdrawal-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-wallet"></i> Withdraw NRX Tokens</h3>
+                <span class="withdrawal-close">&times;</span>
+            </div>
+            
+            <div class="modal-body">
+                <div class="withdrawal-info">
+                    <p><i class="fas fa-info-circle"></i> Minimum withdrawal: 0.001 NRX</p>
+                    <p><i class="fas fa-gas-pump"></i> Network fee: 0.0001 BNB</p>
+                    <p><i class="fas fa-clock"></i> Processing delay: 15-30 minutes</p>
+                    <p><i class="fas fa-tasks"></i> Task verification required</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="wallet-address">Your BSC Wallet Address</label>
+                    <input type="text" id="wallet-address" placeholder="0x..." required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="withdrawal-amount">Amount to Withdraw (NRX)</label>
+                    <div class="amount-input">
+                        <input type="number" id="withdrawal-amount" step="0.001" min="0.001" value="0.0000">
+                        <span class="max-btn" id="max-amount">MAX</span>
+                    </div>
+                    <p class="available-tokens">Available: <span id="available-tokens">0.0000</span> NRX</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="network">Network</label>
+                    <select id="network" disabled>
+                        <option>BNB Smart Chain (BEP-20)</option>
+                    </select>
+                </div>
+                
+                <div class="security-notice">
+                    <i class="fas fa-shield-alt"></i>
+                    <p>For security, a verification task is required for withdrawals. This prevents fraud and ensures fair distribution.</p>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary withdrawal-close">Cancel</button>
+                <button id="confirm-withdrawal" class="btn btn-success">Confirm Withdrawal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cycle Complete Modal -->
+    <div id="cycle-complete-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle"></i> Mining Cycle Complete!</h3>
+            </div>
+            
+            <div class="modal-body">
+                <div class="cycle-stats">
+                    <div class="cycle-stat">
+                        <div class="cycle-stat-value" id="cycle-tokens-earned">0.0000</div>
+                        <div class="cycle-stat-label">NRX Earned</div>
+                    </div>
+                    <div class="cycle-stat">
+                        <div class="cycle-stat-value" id="cycle-number">1</div>
+                        <div class="cycle-stat-label">Cycle Completed</div>
+                    </div>
+                    <div class="cycle-stat">
+                        <div class="cycle-stat-value" id="cycles-today">1/96</div>
+                        <div class="cycle-stat-label">Cycles Today</div>
+                    </div>
+                    <div class="cycle-stat">
+                        <div class="cycle-stat-value" id="daily-progress-modal">0%</div>
+                        <div class="cycle-stat-label">Daily Progress</div>
+                    </div>
+                </div>
+                
+                <div class="verification-notice">
+                    <h4><i class="fas fa-tasks"></i> Complete One Task to Continue</h4>
+                    <p>To prevent automated mining and ensure fair distribution, please complete one simple task to unlock the next 5-minute mining cycle.</p>
+                    <p class="small-note"><i class="fas fa-exclamation-circle"></i> Do not close or refresh this page during verification.</p>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="start-verification" class="btn btn-primary btn-large">
+                    <i class="fas fa-play"></i> Start Verification Task
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Warning Modal -->
+    <div id="security-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header security-header">
+                <h3><i class="fas fa-shield-alt"></i> Security Notice</h3>
+            </div>
+            
+            <div class="modal-body">
+                <div class="security-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h4>Task Verification Required</h4>
+                    <p>To prevent automated mining and ensure fair token distribution, you must complete a simple task to unlock features.</p>
+                    
+                    <div class="security-features">
+                        <p><i class="fas fa-check-circle"></i> One-time verification per mining cycle</p>
+                        <p><i class="fas fa-check-circle"></i> Simple tasks (watch video, visit website)</p>
+                        <p><i class="fas fa-check-circle"></i> No personal information required</p>
+                        <p><i class="fas fa-check-circle"></i> Prevents bot farming</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="accept-security" class="btn btn-primary">I Understand & Accept</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OGADS Verification Overlay will be created dynamically by JavaScript -->
+    
+    <script src="script.js"></script>
+</body>
+                      </html>
