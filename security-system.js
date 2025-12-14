@@ -1,23 +1,24 @@
 // ===== NRX SECURITY & MONETIZATION SYSTEM =====
 // Implements all 10 security features and 4-pillar system
-// Works with your exact HTML and CSS structure
+// Uses OGADS locker: https://lockedapp.org/cl/i/j76pvj
 
 class NRXSecuritySystem {
     constructor() {
-        // Configuration - matches your existing structure
+        // Configuration
         this.CONFIG = {
-            OGADS_URL: 'https://applocked.org/cl/i/j76pvj',
+            OGADS_URL: 'https://lockedapp.org/cl/i/j76pvj', // YOUR EXACT OGADS URL
             MINING_CYCLE_DURATION: 5 * 60, // 5 minutes in seconds
             DAILY_LIMIT: 20,
             MINING_SPEED_BASE: 20,
             REVENUE_TARGET: 150, // $150-200 daily target
-            WITHDRAWAL_DELAY: 20 * 60, // 20 minutes
+            WITHDRAWAL_DELAY_MIN: 15 * 60, // 15 minutes
+            WITHDRAWAL_DELAY_MAX: 30 * 60, // 30 minutes
             MAX_WITHDRAWALS_PER_DAY: 2,
             REVENUE_CHECK_INTERVAL: 4 * 60 * 1000, // 4 minutes
-            TASK_TYPES: ['watch_video', 'share_social', 'install_app', 'invite_friend', 'search_web', 'complete_survey']
+            TASK_TYPES: ['app_install', 'app_install_signup', 'survey', 'app_install', 'signup_task']
         };
 
-        // State management - integrates with your existing script.js
+        // State management
         this.state = {
             isMining: false,
             isOGADSActive: false,
@@ -38,17 +39,19 @@ class NRXSecuritySystem {
             pendingWithdrawal: null,
             dailyResetDate: this.getTodayDateString(),
             isMiningPaused: false,
-            lastMiningResume: null,
-            taskCompletionAttempts: 0
+            miningCyclesCompleted: 0,
+            taskCompletionAttempts: 0,
+            lastTaskCompletion: null,
+            revenueHistory: []
         };
 
-        // Initialize the system
+        // Initialize
         this.initializeSystem();
     }
 
     // ===== INITIALIZATION =====
     initializeSystem() {
-        console.log('NRX Security System Initializing...');
+        console.log('🔒 NRX Security System Initializing...');
         this.loadState();
         this.setupEventListeners();
         this.setupVisibilityHandlers();
@@ -60,10 +63,9 @@ class NRXSecuritySystem {
         // Sync with existing script.js if available
         this.syncWithExistingScript();
         
-        console.log('NRX Security System Ready');
+        console.log('✅ NRX Security System Ready');
     }
 
-    // Sync with your existing script.js state
     syncWithExistingScript() {
         if (window.minedTokens !== undefined) {
             this.state.minedToday = window.minedTokens;
@@ -92,19 +94,11 @@ class NRXSecuritySystem {
             return false;
         }
 
-        if (this.state.isMiningPaused && this.state.lastMiningResume) {
-            const timeSincePause = Date.now() - this.state.lastMiningResume;
-            if (timeSincePause < 10000) { // 10 second cooldown
-                this.showNotification('Please wait before resuming mining', 'warning');
-                return false;
-            }
-        }
-
         this.state.isMining = true;
         this.state.isMiningPaused = false;
         this.state.currentCycleStart = Date.now();
         
-        // Update button state to match your CSS
+        // Update button state
         const startBtn = document.getElementById('start-mining-btn');
         if (startBtn) {
             startBtn.innerHTML = '<i class="fas fa-pause"></i> Stop Mining';
@@ -117,18 +111,18 @@ class NRXSecuritySystem {
             this.updateMiningProgress();
         }, 1000);
 
-        // Set cycle end timer - 5-minute locked window
+        // 🔐 Feature 6: 5-minute mining cycles
         const cycleDuration = (this.CONFIG.MINING_CYCLE_DURATION + this.state.windowAdjustment) * 1000;
         this.state.cycleEndTimer = setTimeout(() => {
             this.completeMiningCycle();
         }, cycleDuration);
 
-        this.showNotification('Mining started! 5-minute cycle active.', 'success');
+        this.showNotification('⛏️ Mining started! 5-minute cycle active.', 'success');
         return true;
     }
 
-    stopMining(pauseOnly = false) {
-        if (!this.state.isMining && !pauseOnly) return;
+    stopMining() {
+        if (!this.state.isMining) return;
 
         this.state.isMining = false;
         
@@ -145,21 +139,12 @@ class NRXSecuritySystem {
         // Update button state
         const startBtn = document.getElementById('start-mining-btn');
         if (startBtn) {
-            if (pauseOnly) {
-                startBtn.innerHTML = '<i class="fas fa-play"></i> Resume Mining';
-                this.state.isMiningPaused = true;
-                this.state.lastMiningResume = Date.now();
-            } else {
-                startBtn.innerHTML = '<i class="fas fa-play"></i> Start Mining Now';
-                startBtn.classList.remove('btn-warning');
-                startBtn.classList.add('btn-primary');
-                this.state.isMiningPaused = false;
-            }
+            startBtn.innerHTML = '<i class="fas fa-play"></i> Start Mining Now';
+            startBtn.classList.remove('btn-warning');
+            startBtn.classList.add('btn-primary');
         }
 
-        if (!pauseOnly) {
-            this.saveState();
-        }
+        this.saveState();
     }
 
     completeMiningCycle() {
@@ -170,6 +155,8 @@ class NRXSecuritySystem {
         const cycleDuration = this.CONFIG.MINING_CYCLE_DURATION + this.state.windowAdjustment;
         const minedThisCycle = (this.state.miningSpeed / 3600) * cycleDuration;
         this.state.minedToday = Math.min(this.CONFIG.DAILY_LIMIT, this.state.minedToday + minedThisCycle);
+        
+        this.state.miningCyclesCompleted++;
         
         // 🔐 Feature 9: Daily cap enforcement
         if (this.state.minedToday >= this.CONFIG.DAILY_LIMIT) {
@@ -182,22 +169,17 @@ class NRXSecuritySystem {
         // 🔐 Feature 7: Task prompt appears after each mining cycle
         setTimeout(() => {
             this.showTaskRequirement();
-        }, 1000); // Small delay for UX
+        }, 1000);
     }
 
     updateMiningProgress() {
         if (!this.state.isMining) return;
 
-        // Calculate progress percentage
+        // Calculate progress
         const now = Date.now();
         const elapsed = (now - this.state.currentCycleStart) / 1000;
         const cycleDuration = this.CONFIG.MINING_CYCLE_DURATION + this.state.windowAdjustment;
         
-        // Show warning when 1 minute left
-        if (cycleDuration - elapsed <= 60 && cycleDuration - elapsed > 59) {
-            this.showNotification('1 minute left in mining cycle!', 'info');
-        }
-
         // Calculate real-time mined amount
         const minedThisCycle = (this.state.miningSpeed / 3600) * elapsed;
         const totalMined = Math.min(this.CONFIG.DAILY_LIMIT, this.state.minedToday + minedThisCycle);
@@ -210,11 +192,6 @@ class NRXSecuritySystem {
 
         // 🔐 Feature 10: Accurate mining speed calculation
         this.calculateAccurateSpeed();
-
-        // Auto-save every 30 seconds
-        if (Math.floor(elapsed) % 30 === 0) {
-            this.saveState();
-        }
     }
 
     // 🔐 Feature 7: Task prompt appears after each mining cycle
@@ -222,7 +199,7 @@ class NRXSecuritySystem {
         const modal = document.getElementById('ogads-modal');
         if (!modal) return;
 
-        // Update modal content for task requirement
+        // Update modal content
         const header = modal.querySelector('.modal-header h3');
         if (header) {
             header.textContent = 'Complete Task to Continue Mining';
@@ -230,19 +207,24 @@ class NRXSecuritySystem {
         
         const bodyText = modal.querySelector('.modal-body p');
         if (bodyText) {
-            bodyText.textContent = 'You\'ve completed a 5-minute mining cycle. Complete one task to unlock the next cycle.';
+            bodyText.textContent = 'You\'ve completed a mining cycle. Complete one task to unlock the next 5-minute window.';
         }
 
-        // Show modal
+        // Show modal with fade effect
         modal.style.display = 'block';
-        
+        modal.style.opacity = '0';
+        modal.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => {
+            modal.style.opacity = '1';
+        }, 10);
+
         // 🔐 Feature 1: OGADS cannot be bypassed
         const closeBtn = modal.querySelector('.close');
         if (closeBtn) {
-            closeBtn.style.display = 'none'; // Hide close button
+            closeBtn.style.display = 'none';
         }
 
-        // Set OGADS URL
+        // Set OGADS URL - YOUR EXACT LOCKER
         const ogadsFrame = document.getElementById('ogads-frame');
         if (ogadsFrame) {
             ogadsFrame.src = this.CONFIG.OGADS_URL;
@@ -263,12 +245,13 @@ class NRXSecuritySystem {
 
     // 🔐 Feature 1-4: Prevent bypassing
     setupAntiBypass() {
-        // Prevent page refresh during OGADS
         let hasShownWarning = false;
+        
+        // Prevent page refresh during OGADS
         window.addEventListener('beforeunload', (e) => {
             if (this.state.isOGADSActive && !hasShownWarning) {
                 e.preventDefault();
-                e.returnValue = 'You must complete the task to continue mining.';
+                e.returnValue = '⚠️ You must complete the task to continue mining.';
                 hasShownWarning = true;
                 return e.returnValue;
             }
@@ -282,9 +265,11 @@ class NRXSecuritySystem {
             }
         });
 
-        // Prevent iframe escape
+        // Prevent modal close clicks
         document.addEventListener('click', (e) => {
-            if (this.state.isOGADSActive && e.target.classList.contains('modal')) {
+            if (this.state.isOGADSActive && 
+                (e.target.classList.contains('modal') || 
+                 e.target.classList.contains('close'))) {
                 e.preventDefault();
                 e.stopPropagation();
                 this.showSecurityWarning('Complete the task to continue.');
@@ -294,7 +279,7 @@ class NRXSecuritySystem {
 
     monitorTaskCompletion() {
         let checkCount = 0;
-        const maxChecks = 300; // 5 minutes max
+        const maxChecks = 300;
         
         this.taskCheckInterval = setInterval(() => {
             checkCount++;
@@ -304,13 +289,8 @@ class NRXSecuritySystem {
                 this.showTabSwitchWarning();
             }
 
-            // Check for suspicious behavior
-            if (checkCount > 10 && this.state.taskCompletionAttempts > 3) {
-                this.showSecurityWarning('Multiple task attempts detected. Please complete one task properly.');
-            }
-
-            // Simulated completion check (in production, use OGADS postback)
-            if (checkCount >= 10 && Math.random() > 0.8) {
+            // Simulated completion check
+            if (checkCount >= 10 && Math.random() > 0.85) {
                 this.taskCompleted();
             }
 
@@ -320,7 +300,7 @@ class NRXSecuritySystem {
                 this.state.isOGADSActive = false;
                 this.updateUI();
             }
-        }, 1000); // Check every second
+        }, 1000);
     }
 
     taskCompleted() {
@@ -332,25 +312,36 @@ class NRXSecuritySystem {
         // Hide modal
         const modal = document.getElementById('ogads-modal');
         if (modal) {
-            modal.style.display = 'none';
-            
-            // Restore close button
-            const closeBtn = modal.querySelector('.close');
-            if (closeBtn) {
-                closeBtn.style.display = 'block';
-            }
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modal.style.opacity = '1';
+                
+                // Restore close button
+                const closeBtn = modal.querySelector('.close');
+                if (closeBtn) {
+                    closeBtn.style.display = 'block';
+                }
+            }, 300);
         }
 
         // 🧱 PILLAR 2: Smart Task Rotation
-        const taskReward = this.getTaskReward();
+        const taskType = this.CONFIG.TASK_TYPES[this.state.currentTaskType];
+        const taskReward = this.getTaskReward(taskType);
+        
         this.state.completedTasks.push({
-            type: this.CONFIG.TASK_TYPES[this.state.currentTaskType],
+            type: taskType,
             timestamp: Date.now(),
-            reward: taskReward
+            reward: taskReward,
+            cycle: this.state.miningCyclesCompleted
         });
 
-        // Rotate task type
-        this.state.currentTaskType = (this.state.currentTaskType + 1) % this.CONFIG.TASK_TYPES.length;
+        // Rotate task type (no same task twice in a row)
+        let nextTaskType = (this.state.currentTaskType + 1) % this.CONFIG.TASK_TYPES.length;
+        while (nextTaskType === this.state.currentTaskType) {
+            nextTaskType = (nextTaskType + 1) % this.CONFIG.TASK_TYPES.length;
+        }
+        this.state.currentTaskType = nextTaskType;
 
         // Apply speed boost
         const oldSpeed = this.state.miningSpeed;
@@ -364,14 +355,14 @@ class NRXSecuritySystem {
 
         // Update state
         this.state.isOGADSActive = false;
-        this.state.taskCompletionAttempts = 0;
+        this.state.lastTaskCompletion = Date.now();
         this.saveState();
         this.updateUI();
         
         // Record revenue
-        this.recordRevenue(2.50);
+        this.recordRevenue(this.getTaskRevenue(taskType));
         
-        this.showNotification(`Task completed! Speed increased from ${oldSpeed} to ${this.state.miningSpeed} H/s`, 'success');
+        this.showNotification(`✅ Task completed! Speed: ${oldSpeed} → ${this.state.miningSpeed} H/s`, 'success');
         
         // Enable mining button
         const miningBtn = document.getElementById('start-mining-btn');
@@ -388,20 +379,24 @@ class NRXSecuritySystem {
     }
 
     // 🧱 PILLAR 2: Smart Task Rotation
-    getTaskReward() {
-        const taskType = this.CONFIG.TASK_TYPES[this.state.currentTaskType];
-        
-        // Different rewards based on task type (matches your HTML)
+    getTaskReward(taskType) {
         const rewards = {
-            'watch_video': 5,
-            'share_social': 10,
-            'install_app': 15,
-            'invite_friend': 20,
-            'search_web': 8,
-            'complete_survey': 12
+            'app_install': 15,          // Higher reward for app installs
+            'app_install_signup': 20,   // Highest for app install + signup
+            'survey': 12,               // Medium for surveys
+            'signup_task': 10           // Lower for signup only
         };
-        
-        return rewards[taskType] || 5;
+        return rewards[taskType] || 10;
+    }
+
+    getTaskRevenue(taskType) {
+        const revenues = {
+            'app_install': 3.00,          // Higher EPC for app installs
+            'app_install_signup': 4.50,   // Highest EPC
+            'survey': 2.50,               // Medium EPC
+            'signup_task': 1.50           // Lower EPC
+        };
+        return revenues[taskType] || 2.00;
     }
 
     // 🔐 Feature 5: Tab switching detection
@@ -410,9 +405,7 @@ class NRXSecuritySystem {
         
         document.addEventListener('visibilitychange', () => {
             const now = Date.now();
-            const timeSinceLastChange = now - lastVisibilityChange;
-            
-            if (timeSinceLastChange < 1000) return; // Debounce
+            if (now - lastVisibilityChange < 1000) return;
             
             if (document.hidden) {
                 this.state.tabHidden = true;
@@ -420,8 +413,9 @@ class NRXSecuritySystem {
                 
                 // Pause mining if active
                 if (this.state.isMining) {
-                    this.stopMining(true); // Pause only
-                    this.showNotification('Mining paused - tab switched', 'warning');
+                    this.stopMining();
+                    this.state.isMiningPaused = true;
+                    this.showNotification('⏸️ Mining paused - tab switched', 'warning');
                 }
                 
                 // Show warning if OGADS is active
@@ -444,7 +438,6 @@ class NRXSecuritySystem {
         
         this.tabWarningActive = true;
         
-        // Create warning overlay
         const warning = document.createElement('div');
         warning.id = 'tab-warning-overlay';
         warning.style.cssText = `
@@ -468,9 +461,8 @@ class NRXSecuritySystem {
             <div style="background: rgba(231, 76, 60, 0.2); padding: 40px; border-radius: 10px; border: 2px solid #e74c3c;">
                 <i class="fas fa-exclamation-triangle fa-3x" style="margin-bottom: 20px; color: #e74c3c;"></i>
                 <h3 style="margin-bottom: 15px;">Return to Complete Task</h3>
-                <p style="margin-bottom: 20px; max-width: 400px;">Please return to the mining tab to complete the required task.</p>
-                <p style="font-size: 14px; opacity: 0.8;">
-                    <i class="fas fa-info-circle"></i> Task must be completed to continue mining
+                <p style="margin-bottom: 20px; max-width: 400px;">
+                    Please return to complete the required task. Mining cannot resume until task completion.
                 </p>
             </div>
         `;
@@ -487,21 +479,22 @@ class NRXSecuritySystem {
         }, 500);
     }
 
-    // 🔐 Feature 10: Accurate mining speed calculation (anti-farm)
+    // 🔐 Feature 10: Accurate mining speed calculation
     calculateAccurateSpeed() {
         // Base speed + boosts
         let speed = this.CONFIG.MINING_SPEED_BASE;
         
-        // Add task boosts
+        // Add task boosts (last 1 hour only)
+        const hourAgo = Date.now() - 3600000;
         this.state.completedTasks.forEach(task => {
-            if (task.reward && Date.now() - task.timestamp < 3600000) { // Boosts last 1 hour
+            if (task.reward && task.timestamp > hourAgo) {
                 speed += task.reward;
             }
         });
 
         // Anti-farm detection
         if (this.detectSuspiciousActivity()) {
-            speed = Math.max(1, speed * 0.5); // Reduce by 50%
+            speed = Math.max(1, speed * 0.5);
             this.showSecurityWarning('Unusual activity detected - mining speed reduced');
         }
 
@@ -520,18 +513,13 @@ class NRXSecuritySystem {
             const recentTasks = this.state.completedTasks.slice(-3);
             const timeSpan = recentTasks[2].timestamp - recentTasks[0].timestamp;
             
-            if (timeSpan < 10000) { // 3 tasks in 10 seconds
+            if (timeSpan < 10000) {
                 return true;
             }
         }
         
-        // Check for unrealistic mining speed
+        // Check for unrealistic speed
         if (this.state.miningSpeed > 100) {
-            return true;
-        }
-        
-        // Check for too many task attempts
-        if (this.state.taskCompletionAttempts > 5) {
             return true;
         }
         
@@ -550,7 +538,6 @@ class NRXSecuritySystem {
             return false;
         }
 
-        // Show withdrawal modal
         const modal = document.getElementById('withdrawal-modal');
         if (modal) {
             modal.style.display = 'block';
@@ -563,17 +550,11 @@ class NRXSecuritySystem {
             
             const amountInput = document.getElementById('withdrawal-amount');
             if (amountInput) {
-                const maxAmount = Math.min(5, this.state.minedToday); // Cap at 5 NRX
+                const maxAmount = Math.min(5, this.state.minedToday);
                 amountInput.value = maxAmount.toFixed(4);
                 amountInput.readOnly = false;
                 amountInput.max = maxAmount;
                 amountInput.min = 0.001;
-            }
-            
-            // Clear wallet address
-            const walletInput = document.getElementById('wallet-address');
-            if (walletInput) {
-                walletInput.value = '';
             }
         }
         
@@ -594,7 +575,7 @@ class NRXSecuritySystem {
 
         // Validation
         if (!wallet || !wallet.startsWith('0x') || wallet.length !== 42) {
-            this.showNotification('Please enter a valid BSC wallet address (0x... 42 chars)', 'error');
+            this.showNotification('Please enter a valid BSC wallet address', 'error');
             return;
         }
 
@@ -603,19 +584,17 @@ class NRXSecuritySystem {
             return;
         }
 
-        if (amount < 0.001) {
-            this.showNotification('Minimum withdrawal is 0.001 NRX', 'error');
-            return;
-        }
-
-        // Create withdrawal record
+        // Create withdrawal with random delay (15-30 minutes)
+        const delay = this.CONFIG.WITHDRAWAL_DELAY_MIN + 
+                     Math.random() * (this.CONFIG.WITHDRAWAL_DELAY_MAX - this.CONFIG.WITHDRAWAL_DELAY_MIN);
+        
         const withdrawal = {
             id: Date.now(),
             amount: amount,
             wallet: wallet,
             timestamp: Date.now(),
-            status: 'pending',
-            completionTime: Date.now() + (this.CONFIG.WITHDRAWAL_DELAY * 1000),
+            status: 'pending_verification',
+            completionTime: Date.now() + (delay * 1000),
             requiresVerification: true
         };
 
@@ -630,42 +609,38 @@ class NRXSecuritySystem {
             withdrawalModal.style.display = 'none';
         }
 
-        // Show verification requirement after 3 seconds
+        // Show verification requirement
         setTimeout(() => {
             this.showWithdrawalVerification(withdrawal);
         }, 3000);
 
-        this.showNotification(`Withdrawal queued! ${amount} NRX will be sent after verification.`, 'success');
+        this.showNotification(`⏳ Withdrawal queued! ${amount} NRX - Verification required.`, 'success');
         this.saveState();
         this.updateUI();
     }
 
     showWithdrawalVerification(withdrawal) {
-        // Use OGADS modal for verification
         const modal = document.getElementById('ogads-modal');
         if (modal) {
-            // Update modal content
             const header = modal.querySelector('.modal-header h3');
             if (header) {
-                header.textContent = 'Withdrawal Verification Required';
+                header.textContent = 'Final Verification Required';
             }
             
             const bodyText = modal.querySelector('.modal-body p');
             if (bodyText) {
-                bodyText.textContent = `Complete one final task to verify your withdrawal of ${withdrawal.amount} NRX to ${withdrawal.wallet.substring(0, 8)}...`;
+                bodyText.textContent = `Complete one final task to verify withdrawal of ${withdrawal.amount} NRX.`;
             }
 
             modal.style.display = 'block';
             this.state.isOGADSActive = true;
             
-            // Start monitoring task completion
             this.monitorTaskCompletion();
         }
     }
 
     // 🧱 PILLAR 4: Revenue Target Engine
     initRevenueEngine() {
-        // Check revenue every 4 minutes
         this.revenueInterval = setInterval(() => {
             this.calculateRevenue();
             this.adjustMiningWindows();
@@ -678,27 +653,30 @@ class NRXSecuritySystem {
             task.timestamp > hourAgo
         );
 
-        // Simulated revenue calculation ($2.50 per task average)
-        const taskRevenue = recentTasks.length * 2.50;
-        this.state.revenuePerHour = taskRevenue;
+        let totalRevenue = 0;
+        recentTasks.forEach(task => {
+            totalRevenue += this.getTaskRevenue(task.type);
+        });
+        
+        this.state.revenuePerHour = totalRevenue;
         this.state.lastRevenueCheck = Date.now();
         
-        console.log(`[Revenue Engine] Current revenue/hour: $${taskRevenue.toFixed(2)}`);
+        console.log(`💰 Revenue/hour: $${totalRevenue.toFixed(2)}`);
     }
 
     adjustMiningWindows() {
         const targetPerHour = this.CONFIG.REVENUE_TARGET / 24;
         
         if (this.state.revenuePerHour < targetPerHour * 0.8) {
-            // Below target - shorten windows to increase task frequency
-            this.state.windowAdjustment = -60; // 4 minutes
-            console.log('[Revenue Engine] Revenue low - shortening mining windows to 4 minutes');
+            // Below target - shorten to 4 minutes
+            this.state.windowAdjustment = -60;
+            console.log('📉 Revenue low - 4 minute windows');
         } else if (this.state.revenuePerHour > targetPerHour * 1.2) {
-            // Above target - extend windows for better UX
-            this.state.windowAdjustment = 60; // 6 minutes
-            console.log('[Revenue Engine] Revenue high - extending mining windows to 6 minutes');
+            // Above target - extend to 6 minutes
+            this.state.windowAdjustment = 60;
+            console.log('📈 Revenue high - 6 minute windows');
         } else {
-            // On target
+            // On target - 5 minutes
             this.state.windowAdjustment = 0;
         }
         
@@ -706,24 +684,20 @@ class NRXSecuritySystem {
     }
 
     recordRevenue(amount) {
-        try {
-            const revenueHistory = JSON.parse(localStorage.getItem('nrx_revenue_history') || '[]');
-            revenueHistory.push({
-                amount: amount,
-                timestamp: Date.now(),
-                type: 'task_completion'
-            });
-            
-            // Keep only last 24 hours
-            const dayAgo = Date.now() - 86400000;
-            const filteredHistory = revenueHistory.filter(r => r.timestamp > dayAgo);
-            localStorage.setItem('nrx_revenue_history', JSON.stringify(filteredHistory));
-        } catch (e) {
-            console.warn('Could not record revenue:', e);
-        }
+        this.state.revenueHistory.push({
+            amount: amount,
+            timestamp: Date.now(),
+            taskType: this.CONFIG.TASK_TYPES[this.state.currentTaskType]
+        });
+        
+        // Keep last 24 hours
+        const dayAgo = Date.now() - 86400000;
+        this.state.revenueHistory = this.state.revenueHistory.filter(r => r.timestamp > dayAgo);
+        
+        localStorage.setItem('nrx_revenue_history', JSON.stringify(this.state.revenueHistory));
     }
 
-    // 🔐 Feature 8: Mining progress auto-saves continuously
+    // 🔐 Feature 8: Auto-save continuously
     saveState() {
         try {
             const saveData = {
@@ -731,10 +705,10 @@ class NRXSecuritySystem {
                 miningSpeed: this.state.miningSpeed,
                 completedTasks: this.state.completedTasks,
                 withdrawalsToday: this.state.withdrawalsToday,
-                withdrawalQueue: this.state.withdrawalQueue,
                 currentTaskType: this.state.currentTaskType,
                 windowAdjustment: this.state.windowAdjustment,
                 dailyResetDate: this.state.dailyResetDate,
+                miningCyclesCompleted: this.state.miningCyclesCompleted,
                 lastSave: Date.now(),
                 sessionId: this.state.sessionId
             };
@@ -742,7 +716,7 @@ class NRXSecuritySystem {
             localStorage.setItem('nrx_security_state', JSON.stringify(saveData));
             return true;
         } catch (e) {
-            console.error('Failed to save state:', e);
+            console.error('Save failed:', e);
             return false;
         }
     }
@@ -753,24 +727,22 @@ class NRXSecuritySystem {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 
-                // Check if it's from today
                 if (parsed.dailyResetDate === this.getTodayDateString()) {
                     this.state.minedToday = parsed.minedToday || 0;
                     this.state.miningSpeed = parsed.miningSpeed || 20;
                     this.state.completedTasks = parsed.completedTasks || [];
                     this.state.withdrawalsToday = parsed.withdrawalsToday || 0;
-                    this.state.withdrawalQueue = parsed.withdrawalQueue || [];
                     this.state.currentTaskType = parsed.currentTaskType || 0;
                     this.state.windowAdjustment = parsed.windowAdjustment || 0;
+                    this.state.miningCyclesCompleted = parsed.miningCyclesCompleted || 0;
                     this.state.sessionId = parsed.sessionId || this.state.sessionId;
                     return true;
                 } else {
-                    // New day - reset daily stats
                     this.resetDailyStats();
                 }
             }
         } catch (e) {
-            console.error('Failed to load state:', e);
+            console.error('Load failed:', e);
         }
         return false;
     }
@@ -787,11 +759,11 @@ class NRXSecuritySystem {
         const today = this.getTodayDateString();
         this.state.minedToday = 0;
         this.state.withdrawalsToday = 0;
-        this.state.completedTasks = [];
+        this.state.miningCyclesCompleted = 0;
         this.state.dailyResetDate = today;
         this.saveState();
         this.updateUI();
-        console.log('Daily stats reset for new day');
+        console.log('🔄 Daily stats reset');
     }
 
     getTodayDateString() {
@@ -813,7 +785,7 @@ class NRXSecuritySystem {
             speedElement.textContent = this.state.miningSpeed + ' H/s';
         }
 
-        // Update withdrawal button state
+        // Update withdrawal button
         const withdrawBtn = document.getElementById('withdraw-btn');
         if (withdrawBtn) {
             withdrawBtn.disabled = this.state.minedToday < 0.001 || 
@@ -821,55 +793,22 @@ class NRXSecuritySystem {
                                   this.state.isOGADSActive;
         }
 
-        // Update mining button state
+        // Update mining button
         const miningBtn = document.getElementById('start-mining-btn');
         if (miningBtn) {
             miningBtn.disabled = this.state.isOGADSActive || 
                                 this.state.minedToday >= this.CONFIG.DAILY_LIMIT;
         }
 
-        // Update task completion indicators
-        this.updateTaskIndicators();
-        
         // Check daily limit
         if (this.state.minedToday >= this.CONFIG.DAILY_LIMIT && this.state.isMining) {
             this.stopMining();
         }
     }
 
-    updateTaskIndicators() {
-        const taskElements = document.querySelectorAll('.task');
-        taskElements.forEach((taskEl, index) => {
-            if (index < this.CONFIG.TASK_TYPES.length) {
-                const taskType = this.CONFIG.TASK_TYPES[index];
-                const completed = this.state.completedTasks.some(t => t.type === taskType);
-                
-                if (completed) {
-                    taskEl.classList.add('completed');
-                    taskEl.style.opacity = '0.7';
-                    taskEl.style.cursor = 'default';
-                    
-                    // Add checkmark if not already present
-                    if (!taskEl.querySelector('.task-checkmark')) {
-                        const checkmark = document.createElement('div');
-                        checkmark.className = 'task-checkmark';
-                        checkmark.innerHTML = '<i class="fas fa-check-circle"></i>';
-                        checkmark.style.cssText = 'position:absolute; top:10px; right:10px; color:#27ae60; font-size:20px;';
-                        taskEl.style.position = 'relative';
-                        taskEl.appendChild(checkmark);
-                    }
-                } else {
-                    taskEl.classList.remove('completed');
-                    taskEl.style.opacity = '1';
-                    taskEl.style.cursor = 'pointer';
-                }
-            }
-        });
-    }
-
     // ===== EVENT HANDLERS =====
     setupEventListeners() {
-        // Start/Stop Mining button
+        // Start/Stop Mining
         const startBtn = document.getElementById('start-mining-btn');
         if (startBtn) {
             startBtn.addEventListener('click', (e) => {
@@ -882,7 +821,7 @@ class NRXSecuritySystem {
             });
         }
 
-        // Mine Now button (shows boost section)
+        // Mine Now button
         const mineNowBtn = document.getElementById('mine-now-btn');
         if (mineNowBtn) {
             mineNowBtn.addEventListener('click', (e) => {
@@ -890,8 +829,6 @@ class NRXSecuritySystem {
                 const boostSection = document.getElementById('boost-mining-section');
                 if (boostSection) {
                     boostSection.style.display = 'block';
-                    
-                    // Auto-hide after 5 seconds
                     setTimeout(() => {
                         boostSection.style.display = 'none';
                     }, 5000);
@@ -908,25 +845,6 @@ class NRXSecuritySystem {
             });
         }
 
-        // Task clicks
-        const tasks = document.querySelectorAll('.task');
-        tasks.forEach(task => {
-            task.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                // Check if task is already completed
-                if (task.classList.contains('completed')) {
-                    this.showNotification('Task already completed!', 'info');
-                    return;
-                }
-                
-                this.state.taskCompletionAttempts++;
-                
-                // Show OGADS modal for task
-                this.showTaskRequirement();
-            });
-        });
-
         // OGADS task completion button
         const taskCompletedBtn = document.getElementById('task-completed');
         if (taskCompletedBtn) {
@@ -936,7 +854,7 @@ class NRXSecuritySystem {
             });
         }
 
-        // Confirm withdrawal button
+        // Confirm withdrawal
         const confirmWithdrawalBtn = document.getElementById('confirm-withdrawal');
         if (confirmWithdrawalBtn) {
             confirmWithdrawalBtn.addEventListener('click', (e) => {
@@ -945,76 +863,47 @@ class NRXSecuritySystem {
             });
         }
 
-        // Copy address button
+        // Copy address
         const copyBtn = document.getElementById('copy-address');
         if (copyBtn) {
             copyBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 const address = '0x843359Fc72AB9C741c88EA32a224005f9AED5eD7';
                 navigator.clipboard.writeText(address).then(() => {
-                    this.showNotification('Contract address copied!', 'success');
-                }).catch(() => {
-                    this.showNotification('Failed to copy address', 'error');
+                    this.showNotification('Contract copied!', 'success');
                 });
             });
         }
 
-        // Modal close buttons (with restrictions)
+        // Modal close buttons
         document.querySelectorAll('.close, .withdrawal-close').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                
-                // 🔐 Feature 4: Prevent closing during required tasks
                 if (this.state.isOGADSActive) {
-                    this.showSecurityWarning('You must complete the task first!');
+                    this.showSecurityWarning('Complete the task first!');
                     return;
                 }
-                
                 const modal = e.target.closest('.modal');
-                if (modal) {
-                    modal.style.display = 'none';
-                }
+                if (modal) modal.style.display = 'none';
             });
-        });
-
-        // Close modals when clicking outside (with restrictions)
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                // 🔐 Feature 4: Prevent closing during required tasks
-                if (this.state.isOGADSActive) {
-                    this.showSecurityWarning('Complete the task to continue.');
-                    return;
-                }
-                
-                e.target.style.display = 'none';
-            }
         });
 
         // Auto-save every 30 seconds
         setInterval(() => {
             this.saveState();
         }, 30000);
-
-        // Save on page unload
-        window.addEventListener('beforeunload', () => {
-            this.saveState();
-        });
     }
 
     // ===== UTILITIES =====
     showNotification(message, type = 'info') {
-        // Remove existing notifications
-        const existingNotifications = document.querySelectorAll('.nrx-notification');
-        existingNotifications.forEach(n => n.remove());
+        const existing = document.querySelectorAll('.nrx-notification');
+        existing.forEach(n => n.remove());
 
-        // Create notification
         const notification = document.createElement('div');
         notification.className = 'nrx-notification';
         
-        // Use your existing CSS classes
         const notificationClass = type === 'success' ? 'success-message' : 
-                                type === 'error' ? 'error-message' : 
-                                'info-message';
+                                type === 'error' ? 'error-message' : 'info-message';
         notification.classList.add(notificationClass);
         
         notification.innerHTML = `
@@ -1024,7 +913,6 @@ class NRXSecuritySystem {
             <span>${message}</span>
         `;
         
-        // Position it at the top
         notification.style.cssText = `
             position: fixed;
             top: 20px;
@@ -1041,7 +929,6 @@ class NRXSecuritySystem {
         
         document.body.appendChild(notification);
         
-        // Remove after 5 seconds
         setTimeout(() => {
             notification.style.animation = 'fadeOut 0.3s ease forwards';
             setTimeout(() => notification.remove(), 300);
@@ -1072,14 +959,6 @@ document.addEventListener('DOMContentLoaded', () => {
             to { opacity: 0; transform: translateY(-20px); }
         }
         
-        .task.completed {
-            pointer-events: none;
-        }
-        
-        .task-checkmark {
-            animation: fadeIn 0.3s ease;
-        }
-        
         .info-message {
             background: var(--primary);
             color: white;
@@ -1092,48 +971,23 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(style);
     
-    // Initialize security system
+    // Initialize
     try {
         window.nrxSecurity = new NRXSecuritySystem();
-        console.log('✅ NRX Security System initialized successfully');
     } catch (error) {
-        console.error('❌ Failed to initialize NRX Security System:', error);
+        console.error('Security system failed:', error);
     }
 });
 
 // ===== ANTI-BOT PROTECTION =====
 (function() {
-    // Prevent right-click on OGADS iframe
-    document.addEventListener('contextmenu', (e) => {
-        if (e.target.closest('.ogads-frame-container') || 
-            e.target.closest('#ogads-frame')) {
-            e.preventDefault();
-            return false;
-        }
-    });
-    
-    // Prevent keyboard shortcuts for dev tools
+    // Prevent dev tools
     document.addEventListener('keydown', (e) => {
-        // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
         if (e.key === 'F12' || 
             (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) ||
             (e.ctrlKey && e.key === 'u')) {
             e.preventDefault();
-            alert('Developer tools are disabled for security.');
             return false;
         }
     });
-    
-    // Detect iframe embedding
-    if (window.self !== window.top) {
-        // Allow embedding from same origin
-        if (window.self.location.origin !== window.top.location.origin) {
-            document.body.innerHTML = `
-                <div style="text-align: center; padding: 50px; color: var(--dark);">
-                    <h2>Access Restricted</h2>
-                    <p>This site cannot be embedded in iframes for security reasons.</p>
-                </div>
-            `;
-        }
-    }
 })();
