@@ -189,6 +189,25 @@ class NRXSecuritySystem {
         }, 1000);
     }
 
+    updateMiningProgress() {
+        // Update mining progress UI if it exists
+        const progressElement = document.getElementById('mining-progress');
+        if (progressElement) {
+            const elapsed = Date.now() - this.state.currentCycleStart;
+            const progress = Math.min(100, (elapsed / (this.state.currentWindowSize * 1000)) * 100);
+            progressElement.style.width = progress + '%';
+            
+            // Update time remaining
+            const timeElement = document.getElementById('time-remaining');
+            if (timeElement) {
+                const remaining = Math.max(0, this.state.currentWindowSize - Math.floor(elapsed / 1000));
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                timeElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+    }
+
     // ========== 🔄 PILLAR 2: SMART TASK ROTATION ==========
     initPillar2() {
         console.log('🔄 Pillar 2: Smart Task Rotation Active');
@@ -557,6 +576,20 @@ class NRXSecuritySystem {
             }
             return originalClose.apply(this, arguments);
         };
+
+        // Block keyboard shortcuts for closing
+        document.addEventListener('keydown', (e) => {
+            if (this.state.isOGADSActive) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
+                    e.preventDefault();
+                    this.showSecurityWarning('Ctrl+W is disabled during tasks');
+                }
+                if (e.key === 'F4' && (e.altKey || e.ctrlKey)) {
+                    e.preventDefault();
+                    this.showSecurityWarning('Alt+F4 is disabled during tasks');
+                }
+            }
+        });
     }
 
     showSecureTaskRequirement(context = 'mining_cycle', data = null) {
@@ -796,6 +829,10 @@ class NRXSecuritySystem {
         if (modal) modal.remove();
         const overlay = document.getElementById('tab-protection-overlay');
         if (overlay) overlay.remove();
+        
+        // Re-enable mining button
+        const miningBtn = document.getElementById('start-mining-btn');
+        if (miningBtn) miningBtn.disabled = false;
     }
 
     showSuccessNotification(oldSpeed, newSpeed, boost) {
@@ -870,6 +907,15 @@ class NRXSecuritySystem {
                 this.confirmWithdrawal();
             });
         }
+        
+        // Close modals
+        const closeButtons = document.querySelectorAll('.close');
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const modal = e.target.closest('.modal');
+                if (modal) modal.style.display = 'none';
+            });
+        });
         
         // Auto-save every 30 seconds
         setInterval(() => {
@@ -957,6 +1003,21 @@ class NRXSecuritySystem {
         if (speedElement) {
             speedElement.textContent = this.state.miningSpeed + ' H/s';
         }
+        
+        // Update mining button
+        const startBtn = document.getElementById('start-mining-btn');
+        if (startBtn) {
+            if (this.state.isMining) {
+                startBtn.innerHTML = '<i class="fas fa-pause"></i> Stop Mining';
+                startBtn.classList.remove('btn-primary');
+                startBtn.classList.add('btn-warning');
+            } else {
+                startBtn.innerHTML = '<i class="fas fa-play"></i> Start Mining Now';
+                startBtn.classList.remove('btn-warning');
+                startBtn.classList.add('btn-primary');
+                startBtn.disabled = this.state.isOGADSActive;
+            }
+        }
     }
 
     recordRevenue(amount) {
@@ -968,4 +1029,20 @@ class NRXSecuritySystem {
     }
 
     generateSessionId() {
-        return 'nrx_' + Date.now
+        return 'nrx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    getTodayDateString() {
+        const today = new Date();
+        return `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    }
+}
+
+// ===== INSTANTIATE AND EXPORT =====
+// Make it globally available
+window.nrxSecurity = new NRXSecuritySystem();
+
+// For module systems
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = NRXSecuritySystem;
+                }
