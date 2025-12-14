@@ -1,5 +1,5 @@
 // ===== NRX SECURITY & MONETIZATION SYSTEM =====
-// COMPLETE VERSION - ALL 4 PILLARS + TAB PROTECTION
+// COMPLETE VERSION - ALL 4 PILLARS + TAB PROTECTION + NAVIGATION FIX
 // IMPLEMENTS ALL 10 SECURITY FEATURES
 
 class NRXSecuritySystem {
@@ -87,8 +87,9 @@ class NRXSecuritySystem {
         // 📊 Initialize Pillar 4: Revenue Target Engine
         this.initPillar4();
         
-        // Setup security systems
-        this.setupTabProtection();
+        // Setup security systems (ORDER MATTERS!)
+        this.setupIframeNavigationProtection(); // ADD THIS FIRST
+        this.setupTabProtection();              // THEN THIS
         this.setupEventListeners();
         this.setupVisibilityHandlers();
         this.setupAntiBypass();
@@ -547,6 +548,30 @@ class NRXSecuritySystem {
     }
 
     // ========== SECURE TASK SYSTEM (WITH TAB PROTECTION) ==========
+    setupIframeNavigationProtection() {
+        console.log('🛡️ Setting up iframe navigation protection...');
+        
+        // Listen to iframe messages from OGADS
+        window.addEventListener('message', (e) => {
+            // Only accept messages from our OGADS iframe
+            const iframe = document.getElementById('secure-ogads-frame');
+            if (!iframe || e.source !== iframe.contentWindow) return;
+            
+            console.log('📨 Message from OGADS iframe:', e.data);
+            
+            // If OGADS tries to manipulate history
+            if (e.data && e.data.type === 'history_push') {
+                console.log('🛡️ Blocking OGADS history manipulation');
+                return false;
+            }
+            
+            // If OGADS reports completion
+            if (e.data && e.data.type === 'task_completed') {
+                this.secureTaskCompleted(e.data.context, e.data.data);
+            }
+        });
+    }
+
     setupTabProtection() {
         // 🔴 CRITICAL: Prevent OGADS from closing our tab
         window.addEventListener('beforeunload', (e) => {
@@ -563,6 +588,25 @@ class NRXSecuritySystem {
                 }, 5000);
                 
                 return e.returnValue;
+            }
+        });
+
+        // ⚠️ FIX: Block back/forward navigation during tasks
+        window.addEventListener('popstate', (e) => {
+            if (this.state.isOGADSActive) {
+                console.log('🚫 Blocked back/forward navigation during task');
+                
+                // Prevent default back behavior
+                e.preventDefault();
+                
+                // Push our state back to prevent closing
+                history.pushState(null, null, window.location.href);
+                
+                // Show warning
+                this.showSecurityWarning('Complete the task before navigating away!');
+                
+                // Create overlay if they try to leave
+                this.createProtectionOverlay();
             }
         });
 
@@ -588,8 +632,15 @@ class NRXSecuritySystem {
                     e.preventDefault();
                     this.showSecurityWarning('Alt+F4 is disabled during tasks');
                 }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    this.showSecurityWarning('ESC key disabled. Use the "Return to Task" button.');
+                }
             }
         });
+
+        // ⚠️ FIX: Initialize history state
+        history.pushState({nrxTaskActive: true}, '', window.location.href);
     }
 
     showSecureTaskRequirement(context = 'mining_cycle', data = null) {
@@ -685,18 +736,88 @@ class NRXSecuritySystem {
         
         if (!iframe) return;
 
+        // Override iframe's history manipulation
         iframe.addEventListener('load', () => {
             console.log('✅ Secure iframe loaded');
+            
+            try {
+                // Inject protection script into iframe
+                const protectionScript = `
+                    // Block history manipulation
+                    const originalPushState = history.pushState;
+                    const originalReplaceState = history.replaceState;
+                    const originalBack = history.back;
+                    const originalGo = history.go;
+                    
+                    history.pushState = function() {
+                        console.log('🛡️ Blocked pushState in iframe');
+                        window.parent.postMessage({type: 'history_push'}, '*');
+                        return null;
+                    };
+                    
+                    history.replaceState = function() {
+                        console.log('🛡️ Blocked replaceState in iframe');
+                        return null;
+                    };
+                    
+                    history.back = function() {
+                        console.log('🛡️ Blocked back() in iframe');
+                        window.parent.postMessage({type: 'prevent_back'}, '*');
+                        return null;
+                    };
+                    
+                    history.go = function(delta) {
+                        if (delta < 0) {
+                            console.log('🛡️ Blocked go(' + delta + ') in iframe');
+                            window.parent.postMessage({type: 'prevent_back'}, '*');
+                            return null;
+                        }
+                        return originalGo.apply(this, arguments);
+                    };
+                    
+                    // Block window close in iframe
+                    window.close = function() {
+                        console.log('🛡️ Blocked window.close() in iframe');
+                        window.parent.postMessage({type: 'prevent_close'}, '*');
+                    };
+                    
+                    // Report completion to parent
+                    window.completeTask = function() {
+                        window.parent.postMessage({
+                            type: 'task_completed',
+                            context: '${context}',
+                            data: ${JSON.stringify(data || {})}
+                        }, '*');
+                    };
+                    
+                    // Block any onbeforeunload in iframe
+                    window.onbeforeunload = function(e) {
+                        e.preventDefault();
+                        e.returnValue = 'Complete the task first!';
+                        return e.returnValue;
+                    };
+                    
+                    console.log('🛡️ OGADS iframe protection injected successfully');
+                `;
+                
+                // Execute script in iframe context
+                iframe.contentWindow.eval(protectionScript);
+                
+            } catch (error) {
+                console.error('Failed to inject protection:', error);
+            }
+            
             if (loading) loading.style.display = 'none';
             iframe.style.display = 'block';
             this.startSecureMonitoring(context, data);
-        });
+        }.bind(this));
 
         // Add parameters to prevent tab closing
         const url = new URL(this.CONFIG.OGADS_URL);
         url.searchParams.append('noredirect', '1');
         url.searchParams.append('noexit', '1');
         url.searchParams.append('iniframe', '1');
+        url.searchParams.append('nohistory', '1'); // Tell OGADS not to manipulate history
         
         iframe.src = url.toString();
     }
@@ -798,7 +919,7 @@ class NRXSecuritySystem {
                 <i class="fas fa-shield-alt fa-4x" style="margin-bottom: 20px;"></i>
                 <h2 style="margin-bottom: 15px;">⚠️ SECURITY WARNING</h2>
                 <p style="font-size: 18px; margin-bottom: 20px;">
-                    Do NOT close this tab!<br>
+                    Do NOT close this tab or use the back button!<br>
                     Complete the task in the secure container.
                 </p>
                 <button id="return-to-task-btn" style="
@@ -814,6 +935,9 @@ class NRXSecuritySystem {
                 ">
                     <i class="fas fa-arrow-left"></i> Return to Task
                 </button>
+                <p style="color: #fff; margin-top: 20px; font-size: 14px;">
+                    <i class="fas fa-info-circle"></i> The back button has been disabled. You must complete the task.
+                </p>
             </div>
         `;
 
@@ -821,6 +945,19 @@ class NRXSecuritySystem {
 
         document.getElementById('return-to-task-btn').addEventListener('click', () => {
             overlay.remove();
+            // Force focus back to iframe
+            const iframe = document.getElementById('secure-ogads-frame');
+            if (iframe) {
+                iframe.contentWindow.focus();
+            }
+        });
+        
+        // ⚠️ IMPORTANT: Also block clicks on overlay background
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                e.preventDefault();
+                this.showSecurityWarning('You must complete the task!');
+            }
         });
     }
 
@@ -1045,4 +1182,19 @@ window.nrxSecurity = new NRXSecuritySystem();
 // For module systems
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = NRXSecuritySystem;
-                }
+}
+
+// Add CSS animations for notifications
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
