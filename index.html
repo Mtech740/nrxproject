@@ -6,105 +6,158 @@
     <title>Neura Token (NRX) | Powering Smart Digital Growth</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1 class="logo">NEURA TOKEN</h1>
-            <p class="tagline">Powering Smart Digital Growth with Blockchain Technology</p>
+            <div class="logo-container">
+                <img src="https://i.imgur.com/3Q1Jt8N.png" alt="Neura Token Logo" class="logo-img">
+                <h1 class="logo-text">Neura Token</h1>
+            </div>
+            <p class="tagline">Free access to blockchain technology. Powering Smart Digital Growth.</p>
         </header>
 
-        <div class="main-content">
-            <div class="token-info-card">
-                <h2 class="card-title"><i class="fas fa-coins"></i> Token Information</h2>
-                <div class="token-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Token Name:</span>
-                        <span class="detail-value">Neura Token</span>
+        <!-- Official Listing Timer (Updated from original) -->
+        <div class="listing-timer">
+            <h2><i class="fas fa-bullhorn"></i> Official Launch In:</h2>
+            <div class="timer-container">
+                <div class="timer-box">
+                    <div class="timer-number" id="days">22</div>
+                    <div class="timer-label">Days</div>
+                </div>
+                <div class="timer-separator">:</div>
+                <div class="timer-box">
+                    <div class="timer-number" id="hours">00</div>
+                    <div class="timer-label">Hours</div>
+                </div>
+                <div class="timer-separator">:</div>
+                <div class="timer-box">
+                    <div class="timer-number" id="minutes">00</div>
+                    <div class="timer-label">Minutes</div>
+                </div>
+                <div class="timer-separator">:</div>
+                <div class="timer-box">
+                    <div class="timer-number" id="seconds">00</div>
+                    <div class="timer-label">Seconds</div>
+                </div>
+            </div>
+            <p class="timer-note">Token launch countdown</p>
+        </div>
+
+        <!-- Live Price Section (NEW UPGRADE) -->
+        <div class="price-section">
+            <h2><i class="fas fa-chart-line"></i> Live Price Tracking</h2>
+            <div class="price-widget">
+                <div class="price-header">
+                    <span class="token-symbol">NRX/BUSD</span>
+                    <span class="price-change positive">+0.00%</span>
+                </div>
+                <div class="price-main">
+                    <div class="current-price">$0.0000</div>
+                    <div class="price-subtitle">Live price activates after launch</div>
+                </div>
+                <div class="price-footer">
+                    <div class="volume">
+                        <span>24h Volume:</span>
+                        <span>$0</span>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Symbol:</span>
-                        <span class="detail-value">NRX</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Network:</span>
-                        <span class="detail-value">BNB Smart Chain <span class="network-badge">BEP-20</span></span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Contract Address:</span>
+                    <div class="liquidity">
+                        <span>Liquidity:</span>
+                        <span>$0</span>
                     </div>
                 </div>
-                <div class="contract-address" id="contractAddress">0x843359Fc72AB9C741c88EA32a224005f9AED5eD7</div>
-                <button class="copy-btn" onclick="copyContractAddress()">
-                    <i class="far fa-copy"></i> Copy Address
-                </button>
+                <div class="price-notice">
+                    <i class="fas fa-info-circle"></i> Real-time price from DexScreener will display after liquidity is added
+                </div>
+            </div>
+        </div>
+
+        <!-- Token Information Section -->
+        <div class="info-section">
+            <div class="info-card">
+                <h3><i class="fas fa-info-circle"></i> Token Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Token Name:</span>
+                        <span class="info-value">Neura Token</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Symbol:</span>
+                        <span class="info-value">NRX</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Network:</span>
+                        <span class="info-value network-bsc">BNB Smart Chain (BSC)</span>
+                    </div>
+                    <div class="info-item full-width">
+                        <span class="info-label">Contract Address:</span>
+                        <div class="contract-container">
+                            <code class="contract-address">0x843359Fc72AB9C741c88EA32a224005f9AED5eD7</code>
+                            <button class="copy-btn" onclick="copyContract()">
+                                <i class="far fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="price-card">
-                <h2 class="card-title"><i class="fas fa-chart-line"></i> Live Price Tracking</h2>
-                <div class="price-display">
-                    <div class="price-label">NRX TOKEN PRICE</div>
-                    <div class="price-value" id="priceValue">$0.00</div>
-                    <div class="price-label" id="launchCountdown">Live after launch</div>
-                </div>
-                <div class="launch-notice">
-                    <i class="fas fa-info-circle"></i> Price tracking will activate immediately after liquidity is added. Presale in progress.
-                </div>
-                <p class="data-source">
-                    <i class="fas fa-external-link-alt"></i> Live data will be sourced from <strong>DexScreener</strong> and <strong>DexTools</strong>
+            <div class="about-card">
+                <h3><i class="fas fa-rocket"></i> About Neura Token (NRX)</h3>
+                <p class="about-text">
+                    <strong>Token Distribution: Powering Smart Digital Growth</strong>
                 </p>
+                <p class="about-text">
+                    Neura NRX uses smart technology and blockchain to create easy, reliable, and secure digital tools that help people and businesses grow in the new digital world.
+                </p>
+                <p class="mission-text">
+                    Our mission is to democratize access to blockchain technology and create innovative solutions that drive digital transformation across industries.
+                </p>
+                <div class="network-info">
+                    <i class="fas fa-network-wired"></i> <strong>Network:</strong> BNB Smart Chain
+                </div>
             </div>
         </div>
 
-        <div class="about-card">
-            <h2 class="card-title"><i class="fas fa-rocket"></i> About Neura Token (NRX)</h2>
-            <p class="about-text">
-                Neura NRX uses smart technology and blockchain to create easy, reliable, and secure digital tools that help people and businesses grow in the new digital world.
-            </p>
-            
-            <p class="mission-text">
-                Our mission is to democratize access to blockchain technology and create innovative solutions that drive digital transformation across industries.
-            </p>
-            
-            <h3 class="features-title">Key Features:</h3>
-            <ul class="features">
-                <li><i class="fas fa-check-circle"></i> <strong>Smart Technology:</strong> Advanced blockchain solutions for real-world applications</li>
-                <li><i class="fas fa-check-circle"></i> <strong>Secure & Reliable:</strong> Built on BNB Smart Chain for maximum security</li>
-                <li><i class="fas fa-check-circle"></i> <strong>Growth Focused:</strong> Tools designed for digital transformation</li>
-                <li><i class="fas fa-check-circle"></i> <strong>Accessible:</strong> Democratizing blockchain technology for everyone</li>
-            </ul>
-        </div>
-
-        <div class="social-links">
-            <a href="mailto:info@mxproject.com" class="social-link">
-                <i class="fas fa-envelope"></i> info@mxproject.com
-            </a>
-            <a href="https://t.me/mxtoken" target="_blank" class="social-link">
-                <i class="fab fa-telegram"></i> Telegram Community
-            </a>
-            <a href="https://twitter.com/nrx_info" target="_blank" class="social-link">
-                <i class="fab fa-twitter"></i> Twitter Updates
-            </a>
-        </div>
-
+        <!-- Footer Section -->
         <footer>
-            <div class="footer-links">
-                <a href="#" class="footer-link">Home</a>
-                <a href="#" class="footer-link">Smart Media</a>
-                <a href="#" class="footer-link">About NRX</a>
-                <a href="#" class="footer-link">Whitepaper</a>
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h4>Neura Token</h4>
+                    <p>Powering Smart Digital Growth with blockchain technology</p>
+                </div>
+                <div class="footer-column">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                        <li><a href="#"><i class="fas fa-photo-video"></i> Smart Media</a></li>
+                        <li><a href="#"><i class="fas fa-info-circle"></i> About NRX</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Contact Us</h4>
+                    <ul>
+                        <li><a href="mailto:info@mxproject.com"><i class="fas fa-envelope"></i> info@mxproject.com</a></li>
+                        <li><a href="https://t.me/mxtoken" target="_blank"><i class="fab fa-telegram"></i> Telegram: t.me/mxtoken</a></li>
+                        <!-- UPDATED TWITTER LINK -->
+                        <li><a href="https://twitter.com/nrx_info" target="_blank"><i class="fab fa-twitter"></i> Twitter: twitter.com/nrx_info</a></li>
+                    </ul>
+                </div>
             </div>
-            <p>&copy; 2025 Neura Token. All rights reserved.</p>
-            <p class="powered-by">Powered by BNB Smart Chain</p>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Neura Token. All rights reserved.</p>
+                <p class="presale-note"><i class="fas fa-shield-alt"></i> Presale in progress • Liquidity will be locked</p>
+            </div>
         </footer>
     </div>
 
     <!-- Toast Notification -->
     <div id="toast" class="toast">
-        <span id="toastMessage">Contract address copied to clipboard!</span>
+        <div class="toast-content">
+            <i class="fas fa-check-circle toast-icon"></i>
+            <span id="toast-message">Contract address copied!</span>
+        </div>
     </div>
 
     <script src="script.js"></script>
 </body>
-                    </html>
+</html>
