@@ -89,12 +89,15 @@ async function trackPageView() {
     }
 }
 
-// ---------- COUNTDOWN TIMER ----------
+// ---------- COUNTDOWN TIMER (UPDATED TO 12 DAYS) ----------
 function initializeCountdown() {
-    // Set launch date to 22 days from now
+    // Set launch date to 12 days from now (as requested)
     launchDate = new Date();
-    launchDate.setDate(launchDate.getDate() + 22);
+    launchDate.setDate(launchDate.getDate() + 12);
     launchDate.setHours(12, 0, 0, 0); // Set to 12:00 PM
+    
+    console.log("🎯 Launch Date Set:", launchDate.toLocaleString());
+    console.log("⏳ Countdown: 12 days from now");
     
     function updateCountdown() {
         const now = new Date().getTime();
@@ -110,12 +113,13 @@ function initializeCountdown() {
             // Update price section for launch
             const priceNote = document.querySelector('.price-note');
             if (priceNote) {
-                priceNote.textContent = 'Token launched! Price live on DexScreener';
+                priceNote.textContent = '🚀 TOKEN LAUNCHED!';
                 priceNote.style.color = 'var(--success)';
+                priceNote.style.fontWeight = 'bold';
             }
             
             // Update status
-            showToast("🚀 Token launched successfully!");
+            showToast("🚀 Token launched successfully! Liquidity added.");
             return;
         }
         
@@ -124,10 +128,26 @@ function initializeCountdown() {
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
         
+        // Update the countdown display
         document.getElementById('days').textContent = days.toString().padStart(2, '0');
         document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
         document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
         document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+        
+        // Update the countdown note based on time remaining
+        const countdownNote = document.querySelector('.countdown-note');
+        if (countdownNote) {
+            if (days === 0) {
+                countdownNote.textContent = `Launching in ${hours}h ${minutes}m ${seconds}s!`;
+                countdownNote.style.color = 'var(--accent)';
+                countdownNote.style.fontWeight = 'bold';
+            } else if (days === 1) {
+                countdownNote.textContent = 'Launching TOMORROW! Get ready!';
+                countdownNote.style.color = 'var(--accent)';
+            } else {
+                countdownNote.textContent = `Token launch countdown - ${days} days until launch`;
+            }
+        }
     }
     
     // Update immediately and then every second
@@ -252,8 +272,18 @@ function updatePriceSection() {
         // Launch has happened - update UI
         const priceNote = document.querySelector('.price-note');
         if (priceNote) {
-            priceNote.textContent = 'Token launched! Live price coming soon...';
+            priceNote.textContent = '🚀 Token launched! Live price coming soon...';
             priceNote.style.color = 'var(--accent)';
+            priceNote.style.fontWeight = 'bold';
+        }
+        
+        // Also update the price info message
+        const priceInfo = document.querySelector('.price-info');
+        if (priceInfo) {
+            priceInfo.innerHTML = '<i class="fas fa-check-circle"></i> Token launched! DexScreener integration being activated...';
+            priceInfo.style.background = '#d4edda';
+            priceInfo.style.borderColor = '#c3e6cb';
+            priceInfo.style.color = '#155724';
         }
     }
 }
@@ -275,7 +305,7 @@ async function initializeApp() {
         setupSmoothScrolling();
         setupFeatureCards();
         
-        // Initialize countdown timer
+        // Initialize countdown timer (12 days)
         initializeCountdown();
         
         // Initialize price tracking
@@ -299,14 +329,15 @@ async function initializeApp() {
         
         console.log("✅ Neura Token Website initialized successfully!");
         console.log("🎯 Session ID:", sessionId);
-        console.log("🕒 Countdown timer: ACTIVE");
+        console.log("⏰ Countdown: 12 days until launch");
         console.log("💰 Live price tracking: READY (placeholder)");
+        console.log("📱 Telegram: https://t.me/nrxtoken");
+        console.log("🐦 Twitter: https://twitter.com/nrx_info");
         
         // Show welcome message
         setTimeout(() => {
             console.log("🌐 Website ready! All mining activities removed.");
             console.log("📈 Live price tracking infrastructure in place.");
-            console.log("🎯 Twitter updated to: twitter.com/nrx_info");
         }, 1000);
         
     } catch (error) {
@@ -590,8 +621,10 @@ window.showDevInfo = function() {
     console.group("🔧 Developer Information");
     console.log("Session ID:", sessionId);
     console.log("Backend URL:", BACKEND_URL);
-    console.log("Launch Date:", launchDate);
-    console.log("Current Time:", new Date());
-    console.log("User Agent:", navigator.userAgent);
+    console.log("Launch Date:", launchDate?.toLocaleString() || "Not set");
+    console.log("Days until launch:", launchDate ? Math.floor((launchDate - new Date()) / (1000 * 60 * 60 * 24)) : "N/A");
+    console.log("Current Time:", new Date().toLocaleString());
+    console.log("Telegram:", "https://t.me/nrxtoken");
+    console.log("Twitter:", "https://twitter.com/nrx_info");
     console.groupEnd();
 };
