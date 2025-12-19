@@ -89,9 +89,9 @@ async function trackPageView() {
     }
 }
 
-// ---------- COUNTDOWN TIMER (UPDATED TO 12 DAYS) ----------
+// ---------- COUNTDOWN TIMER (12 DAYS) ----------
 function initializeCountdown() {
-    // Set launch date to 12 days from now (as requested)
+    // Set launch date to 12 days from now
     launchDate = new Date();
     launchDate.setDate(launchDate.getDate() + 12);
     launchDate.setHours(12, 0, 0, 0); // Set to 12:00 PM
@@ -331,6 +331,8 @@ async function initializeApp() {
         console.log("🎯 Session ID:", sessionId);
         console.log("⏰ Countdown: 12 days until launch");
         console.log("💰 Live price tracking: READY (placeholder)");
+        // CORRECTED EMAIL IN LOGS:
+        console.log("📧 Email: info@nrxproject.com");
         console.log("📱 Telegram: https://t.me/nrxtoken");
         console.log("🐦 Twitter: https://twitter.com/nrx_info");
         
@@ -624,7 +626,9 @@ window.showDevInfo = function() {
     console.log("Launch Date:", launchDate?.toLocaleString() || "Not set");
     console.log("Days until launch:", launchDate ? Math.floor((launchDate - new Date()) / (1000 * 60 * 60 * 24)) : "N/A");
     console.log("Current Time:", new Date().toLocaleString());
-    console.log("Telegram:", "https://t.me/nrxtoken");
-    console.log("Twitter:", "https://twitter.com/nrx_info");
+    // CORRECTED EMAIL IN LOGS:
+    console.log("Email: info@nrxproject.com");
+    console.log("Telegram: https://t.me/nrxtoken");
+    console.log("Twitter: https://twitter.com/nrx_info");
     console.groupEnd();
 };
